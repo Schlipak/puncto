@@ -82,7 +82,7 @@ class Router
         foreach ($json as $httpMethod => $routes) {
             foreach ($routes as $path => $handler) {
                 list($controllerName, $action) = explode('#', $handler);
-                $controllerClass = Autoloader::APP_NAMESPACE . '\\' . $controllerName . 'Controller';
+                $controllerClass = __APPNAMESPACE__ . '\\' . $controllerName . 'Controller';
 
                 $this->$httpMethod(
                     [$path, $handler],

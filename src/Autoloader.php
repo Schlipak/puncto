@@ -7,8 +7,6 @@ use \RecursiveIteratorIterator;
 
 abstract class Autoloader
 {
-    const APP_NAMESPACE = "PunctoInternalApp";
-
     private static function cleanPath($path, $trimStart = false)
     {
         $result = rtrim($path, DIRECTORY_SEPARATOR);
@@ -24,10 +22,32 @@ abstract class Autoloader
         return $result;
     }
 
+    private static function camelCase($string, $dontStrip = [])
+    {
+        return lcfirst(
+            str_replace(
+                ' ', '',
+                ucwords(
+                    preg_replace('/^a-z0-9' . implode('', $dontStrip) . ']+/', ' ', $string)
+                )
+            )
+        );
+    }
+
+    private static function appToNamespace($app)
+    {
+        $clean = self::cleanPath($app);
+        $clean = ucfirst(self::camelCase($clean));
+
+        return $clean;
+    }
+
+
     public static function register($base, $app = 'app')
     {
         define('__ROOT__', self::cleanPath($base, false));
         define('__APP__', self::cleanPath($app));
+        define('__APPNAMESPACE__', self::appToNamespace($app));
 
         spl_autoload_register(function ($fqcn) {
             $segments = explode('\\', $fqcn);
@@ -35,7 +55,7 @@ abstract class Autoloader
             $namespace = $segments[0];
             $klass = array_values(array_slice($segments, -1))[0];
 
-            if ($namespace === self::APP_NAMESPACE) {
+            if ($namespace === __APPNAMESPACE__) {
                 $appRoot = __ROOT__ . DIRECTORY_SEPARATOR . __APP__;
                 $filename = "$klass.php";
 
