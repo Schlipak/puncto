@@ -169,7 +169,7 @@ class Router
 
             if ($serveBuiltin) {
                 $base = explode('/PUNCTO_DEV', $base)[1];
-                $dir = explode('/classes', __DIR__)[0];
+                $dir = explode('/src', __DIR__)[0];
 
                 $path = $dir . $base . DIRECTORY_SEPARATOR . $params['*'];
             }
