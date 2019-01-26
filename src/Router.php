@@ -53,7 +53,8 @@ class Router
         }
     }
 
-    public function register($base, $app = 'app') {
+    public function register($base, $app = 'app')
+    {
         Autoloader::register($base, $app);
     }
 
@@ -88,6 +89,8 @@ class Router
                     [$path, $handler],
                     function ($request, $env, $params, $renderer) use ($handler, $controllerName, $controllerClass, $action) {
                         $start = round(microtime(true) * 1000);
+
+                        header('Content-Type: text/html');
 
                         try {
                             $controller = new $controllerClass($request, $env, $params, $renderer);
@@ -267,6 +270,7 @@ class Router
         ]);
 
         header("{$this->request->serverProtocol} 405 Method Not Allowed");
+        header('Content-Type: text/html');
         die($this->renderError(405, 'Method Not Allowed', 'method_not_allowed'));
     }
 
@@ -309,12 +313,15 @@ class Router
         header("{$this->request->serverProtocol} $code $message");
 
         if ($this->request->accepts('application/json')) {
+            header('Content-Type: application/json');
             return json_encode([
                 'status' => 'error',
                 'message' => $message,
                 'code' => $code,
             ]);
         }
+
+        header('Content-Type: text/html');
 
         $this->renderer->appendContext([
             'errorCode' => $code,
