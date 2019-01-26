@@ -9,10 +9,10 @@
             "email": "g.de.matos13@gmail.com"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "Puncto\\": "src/classes"
+            "Puncto\\": "src/classes/"
         }
     },
     "require": {
