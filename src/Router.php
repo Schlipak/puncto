@@ -2,6 +2,7 @@
 
 namespace Puncto;
 
+use Puncto\Autoloader;
 use Puncto\Bootstrapable;
 use Puncto\IRequest;
 use Puncto\Renderer;
@@ -50,6 +51,10 @@ class Router
         } else {
             error_reporting(0);
         }
+    }
+
+    public function register($base, $app = 'app') {
+        Autoloader::register($base, $app);
     }
 
     public function __call($name, $args)
