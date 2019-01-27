@@ -125,20 +125,6 @@ namespace Puncto {
 namespace {
     function RendererDefineHelpers()
     {
-        if (!function_exists('partial')) {
-            function partial($name, $ext = 'html.php')
-            {
-                $backtrace = debug_backtrace();
-                $caller = $backtrace[0]['file'];
-                $base = dirname($caller);
-                $filename = "_$name.$ext";
-
-                error_log("    Include partial $filename");
-
-                return "$base/partials/$filename";
-            }
-        }
-
         if (!function_exists('__')) {
             function __($content)
             {
