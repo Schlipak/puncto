@@ -40,7 +40,7 @@ namespace Puncto {
             error_log("  Rendering template $__templateFile");
 
             if ($expandPath) {
-                $__templateFile = __ROOT__ . "/app/templates/$template";
+                $__templateFile = __ROOT__ . DIRECTORY_SEPARATOR . __APP__ . "/templates/$__templateFile";
             }
 
             extract($this->context);
