@@ -9,7 +9,7 @@
             "email": "g.de.matos13@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
             "Puncto\\": "src"
