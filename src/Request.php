@@ -5,6 +5,8 @@ namespace Puncto;
 include_once 'IRequest.php';
 include_once 'Bootstrapable.php';
 
+use \Throwable;
+
 class Request extends Bootstrapable implements IRequest
 {
     protected function bootstrapSelf()
@@ -36,9 +38,17 @@ class Request extends Bootstrapable implements IRequest
                 $result[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_SPECIAL_CHARS);
             }
 
-            $json = json_decode(file_get_contents('php://input'));
-            foreach ($json as $key => $value) {
-                $result[$key] = filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
+            try {
+                $json = json_decode(file_get_contents('php://input'));
+
+                if ($json) {
+                    foreach ($json as $key => $value) {
+                        $result[$key] = filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
+                    }
+                }
+            } catch (Throwable $err) {
+                $result['status'] = 'error';
+                $result['message'] = 'Invalid input format';
             }
         }
 

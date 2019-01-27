@@ -60,6 +60,7 @@ header {
   align-items: center;
   width: 100%;
   padding: 0.5em 1em;
+  padding-right: 1.5em;
 
   background-color: #f1f2f6;
 }
