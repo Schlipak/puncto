@@ -1,58 +1,74 @@
 <?php
 
-namespace Puncto;
-
-use \Throwable;
-
-class Renderer
-{
-    private $context;
-
-    public function __construct($context)
+namespace {
+    function RendererDefineHelpers()
     {
-        $this->context = $context;
+        if (!function_exists('partial')) {
+            function partial($name, $ext = 'html.php')
+            {
+                $backtrace = debug_backtrace();
+                $caller = $backtrace[0]['file'];
+                $base = dirname($caller);
+
+                return "$base/partials/_$name.$ext";
+            }
+        }
     }
+}
 
-    public function setContext($context)
-    {
-        $this->context = $context;
-    }
+namespace Puncto {
+    use \RendererDefineHelpers;
+    use \Throwable;
 
-    public function getContext()
+    class Renderer
     {
-        return $this->context;
-    }
+        private $context;
 
-    public function appendContext($newContext)
-    {
-        $this->setContext(array_merge($this->context, $newContext));
-    }
-
-    public function hasContext($name)
-    {
-        return array_key_exists($name, $this->context);
-    }
-
-    public function render($template, $expandPath = true)
-    {
-        foreach ($this->context as $key => $value) {
-            ${$key} = $value;
+        public function __construct($context)
+        {
+            $this->context = $context;
         }
 
-        try {
-            $file = $template;
+        public function setContext($context)
+        {
+            $this->context = $context;
+        }
+
+        public function getContext()
+        {
+            return $this->context;
+        }
+
+        public function appendContext($newContext)
+        {
+            $this->setContext(array_merge($this->context, $newContext));
+        }
+
+        public function hasContext($name)
+        {
+            return array_key_exists($name, $this->context);
+        }
+
+        public function render($template, $expandPath = true)
+        {
+            $__templateFile = $template;
 
             if ($expandPath) {
-                $file = __ROOT__ . "/app/templates/$template.html.php";
+                $__templateFile = __ROOT__ . "/app/templates/$template.html.php";
             }
 
-            ob_start();
-            include $file;
-            ob_end_flush();
-        } catch (Throwable $err) {
-            ob_end_clean();
+            extract($this->context);
+            RendererDefineHelpers();
 
-            throw $err;
+            try {
+                ob_start();
+                include $__templateFile;
+                ob_end_flush();
+            } catch (Throwable $err) {
+                ob_end_clean();
+
+                throw $err;
+            }
         }
     }
 }
