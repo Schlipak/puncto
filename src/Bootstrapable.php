@@ -2,7 +2,7 @@
 
 namespace Puncto;
 
-abstract class Bootstrapable
+abstract class Bootstrapable extends PunctoObject
 {
     public function __construct()
     {

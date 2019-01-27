@@ -1,26 +1,10 @@
 <?php
 
-namespace {
-    function RendererDefineHelpers()
-    {
-        if (!function_exists('partial')) {
-            function partial($name, $ext = 'html.php')
-            {
-                $backtrace = debug_backtrace();
-                $caller = $backtrace[0]['file'];
-                $base = dirname($caller);
-
-                return "$base/partials/_$name.$ext";
-            }
-        }
-    }
-}
-
 namespace Puncto {
     use \RendererDefineHelpers;
     use \Throwable;
 
-    class Renderer
+    class Renderer extends PunctoObject
     {
         private $context;
 
@@ -49,12 +33,14 @@ namespace Puncto {
             return array_key_exists($name, $this->context);
         }
 
-        public function render($template, $expandPath = true)
+        public function render($template, $expandPath = true, $ext = 'html.php')
         {
-            $__templateFile = $template;
+            $__templateFile = "$template.$ext";
+
+            error_log("  Rendering template $__templateFile");
 
             if ($expandPath) {
-                $__templateFile = __ROOT__ . "/app/templates/$template.html.php";
+                $__templateFile = __ROOT__ . "/app/templates/$template";
             }
 
             extract($this->context);
@@ -68,6 +54,32 @@ namespace Puncto {
                 ob_end_clean();
 
                 throw $err;
+            }
+        }
+    }
+}
+
+namespace {
+    function RendererDefineHelpers()
+    {
+        if (!function_exists('partial')) {
+            function partial($name, $ext = 'html.php')
+            {
+                $backtrace = debug_backtrace();
+                $caller = $backtrace[0]['file'];
+                $base = dirname($caller);
+                $filename = "_$name.$ext";
+
+                error_log("    Include partial $filename");
+
+                return "$base/partials/$filename";
+            }
+        }
+
+        if (!function_exists('__')) {
+            function __($content)
+            {
+                return htmlspecialchars($content);
             }
         }
     }

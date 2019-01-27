@@ -2,9 +2,9 @@
 
 namespace Puncto;
 
-abstract class Kolor
+abstract class Kolor extends PunctoObject
 {
-    const modes = [
+    const MODES = [
         'normal' => 0,
         'bold' => 1,
         'underline' => 4,
@@ -13,7 +13,7 @@ abstract class Kolor
         'invisible' => 8,
     ];
 
-    const fg = [
+    const FOREGROUND = [
         'black' => 30,
         'red' => 31,
         'green' => 32,
@@ -24,7 +24,7 @@ abstract class Kolor
         'white' => 37,
     ];
 
-    const bg = [
+    const BACKGROUND = [
         'black' => 40,
         'red' => 41,
         'green' => 42,
@@ -35,22 +35,22 @@ abstract class Kolor
         'white' => 47,
     ];
 
-    const template = "\033[%sm";
-    const reset = "\033[0m";
+    const TEMPLATE = "\033[%sm";
+    const RESET = "\033[0m";
 
-    static function color($message, $fg, $mode = 'normal', $bg = null)
+    public static function color($message, $foreground, $mode = 'normal', $background = null)
     {
         $parts = [
-            self::modes[$mode],
-            self::fg[$fg],
+            self::MODES[$mode],
+            self::FOREGROUND[$foreground],
         ];
 
-        if (!is_null($bg)) {
-            $parts[] = self::bg[$bg];
+        if (!is_null($background)) {
+            $parts[] = self::BACKGROUND[$background];
         }
 
         $codes = implode(';', $parts);
 
-        return sprintf(self::template, $codes) . $message . self::reset;
+        return sprintf(self::TEMPLATE, $codes) . $message . self::RESET;
     }
 }

@@ -2,10 +2,10 @@
 
 namespace Puncto;
 
-include_once 'Bootstrapable.php';
-
 class Env extends Bootstrapable
 {
+    const VERSION = '0.1.0';
+
     private $env;
 
     protected function bootstrapSelf()
@@ -20,7 +20,7 @@ class Env extends Bootstrapable
             $this->PUNCTO_ENV = 'development';
         }
 
-        $this->PUNCTO_VERSION = '0.1.0';
+        $this->PUNCTO_VERSION = self::VERSION;
     }
 
     public function __toString()
@@ -28,7 +28,10 @@ class Env extends Bootstrapable
         $body = "";
 
         foreach ($this as $key => $value) {
-            if ($key === 'env') continue;
+            if ($key === 'env') {
+                continue;
+            }
+
             $body .= "  $key => $value\n";
         }
 

@@ -2,7 +2,7 @@
 
 namespace Puncto;
 
-class Context
+class Context extends PunctoObject
 {
     public $request;
     public $env;

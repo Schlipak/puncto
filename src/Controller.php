@@ -2,7 +2,7 @@
 
 namespace Puncto;
 
-abstract class Controller
+abstract class Controller extends PunctoObject
 {
     protected $request;
     protected $env;
@@ -20,5 +20,20 @@ abstract class Controller
     protected function render(...$args)
     {
         return $this->renderer->render(...$args);
+    }
+
+    protected function getContext()
+    {
+        return $this->renderer->getContext();
+    }
+
+    protected function appendContext(...$args)
+    {
+        $this->renderer->appendContext(...$args);
+    }
+
+    protected function hasContext(...$args)
+    {
+        return $this->renderer->hasContext(...$args);
     }
 }

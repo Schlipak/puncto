@@ -9,7 +9,7 @@ use Puncto\Renderer;
 use \ErrorException;
 use \Throwable;
 
-class Router
+class Router extends PunctoObject
 {
     const SUPPORTED_HTTP_METHODS = [
         "GET",
@@ -42,7 +42,7 @@ class Router
                     'routes' => $this->getAllRoutes(false),
                 ]);
 
-                return $renderer->render(__DIR__ . '/../templates/welcome.html.php', false);
+                return $renderer->render(__DIR__ . '/../templates/welcome', false);
             });
 
             $this->serveStatic('/PUNCTO_DEV/assets/*', 'PUNCTO_DEV__ASSETS', true);
@@ -87,14 +87,26 @@ class Router
 
                 $this->$httpMethod(
                     [$path, $handler],
-                    function ($request, $env, $params, $renderer) use ($handler, $controllerName, $controllerClass, $action) {
+                    function (
+                        $request,
+                        $env,
+                        $params,
+                        $renderer
+                    ) use (
+                        $handler,
+                        $controllerName,
+                        $controllerClass,
+                        $action
+                    ) {
                         $start = round(microtime(true) * 1000);
 
                         try {
                             $controller = new $controllerClass($request, $env, $params, $renderer);
                         } catch (Throwable $err) {
                             die($this->renderError(
-                                501, 'Not Implemented', 'no_controller',
+                                501,
+                                'Not Implemented',
+                                'no_controller',
                                 [
                                     'controller' => $controllerClass,
                                     'action' => $action,
@@ -108,7 +120,9 @@ class Router
                             $allRoutes = $this->getAllRoutes(false, $controllerName);
 
                             die($this->renderError(
-                                501, 'Not Implemented', 'no_action',
+                                501,
+                                'Not Implemented',
+                                'no_action',
                                 [
                                     'controller' => $controllerClass,
                                     'action' => $action,
@@ -122,7 +136,9 @@ class Router
                             $output = $controller->$action();
                         } catch (Throwable $err) {
                             die($this->renderError(
-                                500, 'Internal Server Error', 'internal_error',
+                                500,
+                                'Internal Server Error',
+                                'internal_error',
                                 [
                                     'controller' => $controllerClass,
                                     'action' => $action,
@@ -331,7 +347,7 @@ class Router
                 ]);
             }
 
-            return $this->renderer->render(__DIR__ . "/../templates/$template.html.php", false);
+            return $this->renderer->render(__DIR__ . "/../templates/$template", false);
         }
 
         return call_user_func_array($this->errorHandler, [$this->request, $this->env, [], $this->renderer]);
@@ -371,7 +387,7 @@ class Router
 
         if (strtoupper($httpMethod) === 'HEAD') {
             $httpMethod = 'GET';
-        } else if (!in_array(strtoupper($httpMethod), self::SUPPORTED_HTTP_METHODS)) {
+        } elseif (!in_array(strtoupper($httpMethod), self::SUPPORTED_HTTP_METHODS)) {
             $this->invalidMethodHandler($cleanRoute, $httpMethod);
         }
 

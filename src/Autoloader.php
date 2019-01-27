@@ -5,48 +5,20 @@ namespace Puncto;
 use \RecursiveDirectoryIterator;
 use \RecursiveIteratorIterator;
 
-abstract class Autoloader
+abstract class Autoloader extends PunctoObject
 {
-    private static function cleanPath($path, $trimStart = false)
-    {
-        $result = rtrim($path, DIRECTORY_SEPARATOR);
-
-        if ($trimStart) {
-            $result = ltrim($result, DIRECTORY_SEPARATOR);
-        }
-
-        if ($result === '') {
-            $result = DIRECTORY_SEPARATOR;
-        }
-
-        return $result;
-    }
-
-    private static function camelCase($string, $dontStrip = [])
-    {
-        return lcfirst(
-            str_replace(
-                ' ', '',
-                ucwords(
-                    preg_replace('/^a-z0-9' . implode('', $dontStrip) . ']+/', ' ', $string)
-                )
-            )
-        );
-    }
-
     private static function appToNamespace($app)
     {
-        $clean = self::cleanPath($app);
-        $clean = ucfirst(self::camelCase($clean));
+        $clean = StringHelper::toCleanPath($app);
+        $clean = StringHelper::toClassCase($clean);
 
         return $clean;
     }
 
-
     public static function register($base, $app = 'app')
     {
-        define('__ROOT__', self::cleanPath($base, false));
-        define('__APP__', self::cleanPath($app));
+        define('__ROOT__', StringHelper::toCleanPath($base, false));
+        define('__APP__', StringHelper::toCleanPath($app));
         define('__APPNAMESPACE__', self::appToNamespace($app));
 
         spl_autoload_register(function ($fqcn) {
