@@ -11,6 +11,10 @@ class RequestTest extends PunctoTestCase
     {
         parent::setUp();
 
+        $_SERVER['HTTP_ACCEPT'] = 'text/html, application/json';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['value'] = '123';
+
         $this->instance = new Request();
     }
 
@@ -23,5 +27,21 @@ class RequestTest extends PunctoTestCase
 
             self::assertSame($value, $actual);
         }
+    }
+
+    /** @test */
+    public function acceptFormatVerified()
+    {
+        self::assertFalse($this->instance->accepts('dummy/mime'));
+        self::assertTrue($this->instance->accepts('text/html'));
+    }
+
+    /** @test */
+    public function getsBody()
+    {
+        $body = $this->instance->getBody();
+
+        self::assertIsArray($body);
+        self::assertSame('123', $body['value']);
     }
 }

@@ -28,3 +28,5 @@ composer.phar
 .history
 
 # End of https://www.gitignore.io/api/composer,phpcodesniffer,visualstudiocode
+
+build/

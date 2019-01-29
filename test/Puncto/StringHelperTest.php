@@ -22,4 +22,13 @@ class StringHelperTest extends TestCase
         self::assertSame('DummyStringTest', StringHelper::toClassCase('DUMMY_STRING_TEST'));
         self::assertSame('DummyStringTest', StringHelper::toClassCase('DUMMY STRING TEST'));
     }
+
+    /** @test */
+    public function cleanPath()
+    {
+        self::assertSame('/', StringHelper::toCleanPath('/'));
+        self::assertSame('/demo/test', StringHelper::toCleanPath('/demo/test/'));
+        self::assertSame('/test', StringHelper::toCleanPath('/test/'));
+        self::assertSame('demo', StringHelper::toCleanPath('/demo/', true));
+    }
 }

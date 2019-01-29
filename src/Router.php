@@ -3,9 +3,8 @@
 namespace Puncto;
 
 use Puncto\Autoloader;
-use Puncto\Bootstrapable;
-use Puncto\IRequest;
 use Puncto\Renderer;
+use Puncto\Request;
 use \ErrorException;
 use \Throwable;
 
@@ -22,11 +21,11 @@ class Router extends PunctoObject
 
     private $errorHandler;
 
-    public function __construct(IRequest $request, Bootstrapable $env)
+    public function __construct()
     {
-        $this->request = $request;
-        $this->env = $env;
-        $this->renderer = new Renderer(['request' => $request, 'env' => $env]);
+        $this->request = new Request();
+        $this->env = new Env();
+        $this->renderer = new Renderer(['request' => $this->request, 'env' => $this->env]);
 
         $this->errorHandler = function (...$args) {
             return $this->defaultErrorHandler(...$args);
