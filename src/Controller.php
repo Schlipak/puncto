@@ -19,9 +19,9 @@ abstract class Controller extends PunctoObject implements IRenderable
         $this->renderer = $renderer;
     }
 
-    public function render(...$args)
+    public function render($template, $expandPath = true, $ext = 'html.php')
     {
-        return $this->renderer->render(...$args);
+        return $this->renderer->render($template, $expandPath, $ext);
     }
 
     public function getContext()
