@@ -5,6 +5,7 @@ namespace Puncto;
 use Puncto\Autoloader;
 use Puncto\Renderer;
 use Puncto\Request;
+use Puncto\StaticHandler;
 use \ErrorException;
 use \Throwable;
 
@@ -178,56 +179,13 @@ class Router extends PunctoObject
     public function serveStatic($route, $name = 'BuiltinStaticHandler', $serveBuiltin = false)
     {
         $routeData = $this->formatRouteParams($route, function ($request, $env, $params) use ($route, $serveBuiltin) {
-            $start = round(microtime(true) * 1000);
+            $handler = new StaticHandler($route, $serveBuiltin);
 
-            $base = explode('/*', $route)[0];
-            $path = __APP__ . $base . DIRECTORY_SEPARATOR . $params['*'];
-
-            if ($serveBuiltin) {
-                $base = explode('/PUNCTO_DEV', $base)[1];
-                $dir = explode('/src', __DIR__)[0];
-
-                $path = $dir . $base . DIRECTORY_SEPARATOR . $params['*'];
+            try {
+                return $handler->render($request, $env, $params);
+            } catch (Throwable $err) {
+                return $this->renderError(404, 'Not Found', 'not_found');
             }
-
-            if (file_exists($path)) {
-                $mtime = filemtime($path);
-                $gmtMtime = gmdate('D, d M Y H:i:s', $mtime) . ' GMT';
-                $etag = sprintf('%08x-%08x', crc32($path), $mtime);
-
-                if (isset($request->httpIfModifiedSince) || isset($request->httpIfNoneMatch)) {
-                    $ifMod = $request->httpIfModifiedSince;
-                    $ifNone = $request->httpIfNoneMatch;
-
-                    if ($ifMod == $gmtMtime || str_replace('"', '', stripslashes($ifNone)) == $etag) {
-                        error_log(Kolor::color("  Completed 304 Not Modified", 'magenta'));
-
-                        header("{$request->serverProtocol} 304 Not Modified");
-                        die();
-                    }
-                }
-
-                $size = filesize($path);
-                $mime = self::getMimeType($path);
-
-                session_cache_limiter('none');
-
-                header("Content-Type: $mime");
-                header("Content-Length: $size");
-                header("ETag: \"$etag\"");
-                header("Last-Modified: $gmtMtime");
-                header('Cache-Control: max-age=' . (60 * 60 * 24));
-
-                $output = file_get_contents($path);
-
-                $end = round(microtime(true) * 1000);
-                $dt = $end - $start;
-                error_log(Kolor::color("  Processed in ${dt}ms", 'green'));
-
-                return $output;
-            }
-
-            return $this->renderError(404, 'Not Found', 'not_found');
         }, $name, 'GET');
 
         $this->get[$routeData['route']] = $routeData;
