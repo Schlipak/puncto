@@ -2,7 +2,9 @@
 
 namespace Puncto;
 
-abstract class Controller extends PunctoObject
+use Puncto\Interfaces\IRenderable;
+
+abstract class Controller extends PunctoObject implements IRenderable
 {
     protected $request;
     protected $env;
@@ -17,22 +19,22 @@ abstract class Controller extends PunctoObject
         $this->renderer = $renderer;
     }
 
-    protected function render(...$args)
+    public function render(...$args)
     {
         return $this->renderer->render(...$args);
     }
 
-    protected function getContext()
+    public function getContext()
     {
         return $this->renderer->getContext();
     }
 
-    protected function appendContext(...$args)
+    public function appendContext(...$args)
     {
         $this->renderer->appendContext(...$args);
     }
 
-    protected function hasContext(...$args)
+    public function hasContext(...$args)
     {
         return $this->renderer->hasContext(...$args);
     }
