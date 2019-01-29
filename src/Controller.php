@@ -29,13 +29,13 @@ abstract class Controller extends PunctoObject implements IRenderable
         return $this->renderer->getContext();
     }
 
-    public function appendContext(...$args)
+    public function appendContext($newContext)
     {
-        $this->renderer->appendContext(...$args);
+        $this->renderer->appendContext($newContext);
     }
 
-    public function hasContext(...$args)
+    public function hasContext($name)
     {
-        return $this->renderer->hasContext(...$args);
+        return $this->renderer->hasContext($name);
     }
 }

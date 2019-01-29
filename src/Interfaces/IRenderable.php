@@ -4,11 +4,11 @@ namespace Puncto\Interfaces;
 
 interface IRenderable
 {
-    public function render(...$args);
+    public function render($template);
 
     public function getContext();
 
-    public function appendContext(...$args);
+    public function appendContext($newContext);
 
-    public function hasContext(...$args);
+    public function hasContext($name);
 }
