@@ -16,6 +16,23 @@ class StaticHandler
         $this->serveBuiltin = $serveBuiltin;
     }
 
+    private static function getMimeType($path)
+    {
+        $mime = mime_content_type($path);
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
+
+        switch ($ext) {
+            case 'html':
+                return 'text/html';
+            case 'css':
+                return 'text/css';
+            case 'js':
+                return 'application/javascript';
+            default:
+                return $mime;
+        }
+    }
+
     public function render($request, $env, $params)
     {
         $start = round(microtime(true) * 1000);

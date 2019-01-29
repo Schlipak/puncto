@@ -159,23 +159,6 @@ class Router extends PunctoObject
         }
     }
 
-    private static function getMimeType($path)
-    {
-        $mime = mime_content_type($path);
-        $ext = pathinfo($path, PATHINFO_EXTENSION);
-
-        switch ($ext) {
-            case 'html':
-                return 'text/html';
-            case 'css':
-                return 'text/css';
-            case 'js':
-                return 'application/javascript';
-            default:
-                return $mime;
-        }
-    }
-
     public function serveStatic($route, $name = 'BuiltinStaticHandler', $serveBuiltin = false)
     {
         $routeData = $this->formatRouteParams($route, function ($request, $env, $params) use ($route, $serveBuiltin) {
