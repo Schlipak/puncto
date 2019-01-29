@@ -7,7 +7,7 @@ abstract class Controller extends PunctoObject
     protected $request;
     protected $env;
     protected $params;
-    protected $renderer;
+    private $renderer;
 
     public function __construct($request, $env, $params, $renderer)
     {
