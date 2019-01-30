@@ -32,8 +32,8 @@
     "squizlabs/php_codesniffer": "^3.4"
   },
   "scripts": {
-    "code-style": "vendor/bin/phpcs --standard=PSR2 src && vendor/bin/phpcs --standard=PSR2 test",
+    "code-style": "vendor/bin/phpcs -s --standard=PSR2 src && vendor/bin/phpcs --standard=PSR2 test",
     "test": "vendor/bin/phpunit -c phpunit.xml",
-    "coverage": "vendor/bin/phpunit -c phpunit.xml --coverage-clover=build/coverage.xml --coverage-html=build/coverage --coverage-text"
+    "coverage": "vendor/bin/phpunit -c phpunit.xml --coverage-html=build/coverage --coverage-text"
   }
 }

@@ -3,12 +3,7 @@
 namespace Puncto\Test;
 
 use PHPUnit\Framework\TestCase;
-use Puncto\Traits\RenderHelper;
-
-class DummyHelper
-{
-    use RenderHelper;
-}
+use Puncto\Test\DummyHelper;
 
 class RenderHelperTest extends TestCase
 {
