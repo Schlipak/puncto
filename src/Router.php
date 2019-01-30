@@ -3,6 +3,7 @@
 namespace Puncto;
 
 use Puncto\Autoloader;
+use Puncto\Logger;
 use Puncto\Renderer;
 use Puncto\Request;
 use Puncto\StaticHandler;
@@ -22,8 +23,10 @@ class Router extends PunctoObject
 
     private $errorHandler;
 
-    public function __construct()
+    public function __construct($skipTestModeCode = false)
     {
+        $this->skipTestModeCode = $skipTestModeCode;
+
         $this->request = new Request();
         $this->env = new Env();
         $this->renderer = new Renderer(['request' => $this->request, 'env' => $this->env]);
@@ -33,9 +36,13 @@ class Router extends PunctoObject
         };
 
         if ($this->env->PUNCTO_ENV === 'development') {
-            set_error_handler(function ($severity, $message, $file, $line) {
-                throw new ErrorException($message, $severity, $severity, $file, $line);
-            });
+            if (!$this->skipTestModeCode) {
+                // @codeCoverageIgnoreStart
+                set_error_handler(function ($severity, $message, $file, $line) {
+                    throw new ErrorException($message, $severity, $severity, $file, $line);
+                });
+                // @codeCoverageIgnoreEnd
+            }
 
             $this->get(['/', 'PUNCTO_DEV__WELCOME'], function ($request, $env, $params, $renderer) {
                 $renderer->appendContext([
@@ -69,7 +76,10 @@ class Router extends PunctoObject
         }
 
         if (!in_array($httpMethod, self::SUPPORTED_HTTP_METHODS)) {
-            $this->invalidMethodHandler($route, $httpMethod);
+            if ($this->env->PUNCTO_ENV === 'development') {
+                echo $this->invalidMethodHandler($route, $httpMethod);
+                return;
+            }
         }
 
         $routeData = $this->formatRouteParams($route, $method, $handler, $httpMethod);
@@ -103,7 +113,7 @@ class Router extends PunctoObject
                         try {
                             $controller = new $controllerClass($request, $env, $params, $renderer);
                         } catch (Throwable $err) {
-                            die($this->renderError(
+                            return $this->renderError(
                                 501,
                                 'Not Implemented',
                                 'no_controller',
@@ -113,13 +123,13 @@ class Router extends PunctoObject
                                     'handler' => $handler,
                                     'exception' => $err,
                                 ]
-                            ));
+                            );
                         }
 
                         if (!method_exists($controller, $action)) {
                             $allRoutes = $this->getAllRoutes(false, $controllerName);
 
-                            die($this->renderError(
+                            return $this->renderError(
                                 501,
                                 'Not Implemented',
                                 'no_action',
@@ -129,13 +139,13 @@ class Router extends PunctoObject
                                     'handler' => $handler,
                                     'routes' => $allRoutes,
                                 ]
-                            ));
+                            );
                         }
 
                         try {
                             $output = $controller->$action();
                         } catch (Throwable $err) {
-                            die($this->renderError(
+                            return $this->renderError(
                                 500,
                                 'Internal Server Error',
                                 'internal_error',
@@ -145,12 +155,12 @@ class Router extends PunctoObject
                                     'handler' => $handler,
                                     'exception' => $err,
                                 ]
-                            ));
+                            );
                         }
 
                         $end = round(microtime(true) * 1000);
                         $dt = $end - $start;
-                        error_log(Kolor::color("  Processed in ${dt}ms", 'green'));
+                        Logger::log("  Processed in ${dt}ms", 'green');
 
                         return $output;
                     }
@@ -216,15 +226,14 @@ class Router extends PunctoObject
 
     private function invalidMethodHandler($route, $method)
     {
-        error_log(Kolor::color("  Completed 405 Method Not Allowed", 'yellow'));
+        Logger::warn("  Completed 405 Method Not Allowed");
 
         $this->renderer->appendContext([
             'route' => $route,
             'method' => $method,
         ]);
 
-        header("{$this->request->serverProtocol} 405 Method Not Allowed");
-        die($this->renderError(405, 'Method Not Allowed', 'method_not_allowed'));
+        return $this->renderError(405, 'Method Not Allowed', 'method_not_allowed');
     }
 
     private function defaultErrorHandler($request, $env, $params, $renderer)
@@ -262,7 +271,7 @@ class Router extends PunctoObject
 
     private function renderError($code, $message, $template, $additionalContext = [])
     {
-        error_log(Kolor::color("  Completed $code $message", 'red'));
+        Logger::error("  Completed $code $message");
         header("{$this->request->serverProtocol} $code $message");
 
         if ($this->request->accepts('application/json')) {
@@ -323,12 +332,13 @@ class Router extends PunctoObject
         $httpMethod = $originMethod;
         $cleanRoute = $this->cleanRoute($this->request->requestUri);
 
-        error_log(Kolor::color("$remoteAddr -> Started $httpMethod $cleanRoute", 'white', 'bold'));
+        Logger::log("$remoteAddr -> Started $httpMethod $cleanRoute", 'white', 'bold');
 
         if (strtoupper($httpMethod) === 'HEAD') {
             $httpMethod = 'GET';
         } elseif (!in_array(strtoupper($httpMethod), self::SUPPORTED_HTTP_METHODS)) {
-            $this->invalidMethodHandler($cleanRoute, $httpMethod);
+            echo $this->invalidMethodHandler($cleanRoute, $httpMethod);
+            return;
         }
 
         $routesDict = [];
@@ -350,26 +360,29 @@ class Router extends PunctoObject
                 $this->renderer->appendContext(['params' => $params]);
 
                 $handler = $route['handler'];
-                error_log("  Matched route handler $handler");
+                Logger::log("  Matched route handler $handler");
 
                 header('X-Powered-By: Puncto');
+                header("{$this->request->serverProtocol} 200 OK");
 
                 $output = call_user_func_array($method, [$this->request, $this->env, $params, $this->renderer]);
 
                 if ($httpMethod !== $originMethod) {
-                    error_log(Kolor::color("  Completed 200 OK", 'blue'));
-                    die();
+                    return Logger::log("  Completed 200 OK", 'blue');
                 }
 
-                die($output);
+                echo $output;
+                return;
             }
         }
 
-        die($this->renderNotFound());
+        echo $this->renderNotFound();
     }
 
     public function __destruct()
     {
-        $this->resolve();
+        if (!$this->skipTestModeCode) {
+            $this->resolve();
+        }
     }
 }

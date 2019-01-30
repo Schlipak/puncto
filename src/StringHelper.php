@@ -8,9 +8,9 @@ abstract class StringHelper extends PunctoObject
     {
         $result = strtolower($string);
 
-        preg_match_all('/[\s_][a-z]/', $result, $matches);
+        preg_match_all('/[\s\-_][a-z]/', $result, $matches);
         foreach ($matches[0] as $match) {
-            $replaced = preg_replace("/[\s_]/", '', strtoupper($match));
+            $replaced = preg_replace("/[\s\-_]/", '', strtoupper($match));
             $result = str_replace($match, $replaced, $result);
         }
 

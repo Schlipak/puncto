@@ -3,10 +3,14 @@
 namespace Puncto;
 
 use Puncto\Interfaces\IRenderable;
+use Puncto\Logger;
+use Puncto\Traits\RenderHelper;
 use \Throwable;
 
 class Renderer extends PunctoObject implements IRenderable
 {
+    use RenderHelper;
+
     private $context;
 
     public function __construct($context)
@@ -95,7 +99,7 @@ class Renderer extends PunctoObject implements IRenderable
         $filename = "_$name.$ext";
         $fullName = $this->expandPath("partials/$filename");
 
-        error_log("    Include partial $filename");
+        Logger::debug("    Include partial $filename");
 
         $this->renderCircularDepError($this->findCircularDeps($fullName), $fullName);
         return $fullName;
@@ -104,7 +108,7 @@ class Renderer extends PunctoObject implements IRenderable
     public function render($template, $expandPath = true, $ext = 'html.php')
     {
         $__templateFile = "$template.$ext";
-        error_log("  Rendering template $__templateFile");
+        Logger::log("  Rendering template $__templateFile");
 
         if ($expandPath) {
             $__templateFile = $this->expandPath($__templateFile);
@@ -117,7 +121,7 @@ class Renderer extends PunctoObject implements IRenderable
         try {
             ob_start();
             include $__templateFile;
-            ob_end_flush();
+            return ob_get_clean();
         } catch (Throwable $err) {
             ob_end_clean();
             throw $err;
