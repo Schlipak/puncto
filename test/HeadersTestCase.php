@@ -10,7 +10,7 @@ class HeadersTestCase extends TestCase
 
     protected function ensureHttpStatus($expected)
     {
-        foreach (self::$headers as $header) {
+        foreach (array_reverse(self::$headers) as $header) {
             $headerText = $header[0];
 
             if (strpos($headerText, "HTTP/") === 0) {
@@ -20,6 +20,23 @@ class HeadersTestCase extends TestCase
 
                 $actual = intval($matches[1]);
                 return self::assertSame($expected, $actual);
+            }
+        }
+
+        self::assertSame('Missing HTTP status header', 'CRASH');
+    }
+
+    protected function ensureContentType($expected)
+    {
+        foreach (array_reverse(self::$headers) as $header) {
+            $headerText = $header[0];
+
+            if (strpos($headerText, "Content-Type") === 0) {
+                $matches = [];
+
+                preg_match("/^Content-Type:\s*(.+)$/", $headerText, $matches);
+
+                return self::assertSame($expected, $matches[1]);
             }
         }
 

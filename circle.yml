@@ -3,7 +3,7 @@ defaults: &defaults
     php:
       version: 7.2
 
-phpunit: &phpunit
+full_workflow: &full_workflow
   steps:
     - checkout
     - run:
@@ -60,7 +60,6 @@ phpunit: &phpunit
     - run:
         name: Coverage
         command: |
-          # sudo docker-php-ext-enable xdebug
           ./cc-test-reporter before-build
           composer coverage-clover
           ./cc-test-reporter after-build --coverage-input-type clover --exit-code $?
@@ -71,4 +70,4 @@ jobs:
     environment:
       CC_TEST_REPORTER_ID: 4e86e7fa03c493a6e01ea99e32df5ad80fa3f38facf44d01a638757ad08094ed
     <<: *defaults
-    <<: *phpunit
+    <<: *full_workflow

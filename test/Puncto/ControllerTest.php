@@ -2,11 +2,12 @@
 
 namespace Puncto\Test;
 
+use PunctoUnit\DummyController;
 use Puncto\Env;
+use Puncto\Exceptions\RenderException;
 use Puncto\Renderer;
 use Puncto\Request;
 use Puncto\Router;
-use Puncto\Test\DummyController;
 use Puncto\Test\PunctoTestCase;
 
 class ControllerTest extends PunctoTestCase
@@ -25,6 +26,9 @@ class ControllerTest extends PunctoTestCase
         $this->request = new Request();
         $this->env = new Env();
         $this->renderer = new Renderer([]);
+
+        $this->$router = new Router(true);
+        $this->$router->register(__DIR__, 'puncto-unit');
 
         $this->instance = new DummyController($this->request, $this->env, [], $this->renderer);
     }
@@ -58,22 +62,32 @@ class ControllerTest extends PunctoTestCase
     /** @test */
     public function forwardsRenderToRenderer()
     {
-        $router = new Router(true);
-        $router->register(__DIR__);
-
-        $output = $this->instance->render(__DIR__ . '/templates/basic', false, 'html');
+        $output = $this->instance->render('basic', true, 'html');
         self::assertSame('This is a basic template', $output);
     }
 
     /** @test */
     public function forwardsRenderToRendererWithContext()
     {
-        $router = new Router(true);
-        $router->register(__DIR__);
-
         $this->instance->appendContext(['value' => 123]);
-        $output = $this->instance->render(__DIR__ . '/templates/value', false);
+        $output = $this->instance->render('value');
 
         self::assertSame('The context value is 123', $output);
+    }
+
+    /** @test */
+    public function rendersPartial()
+    {
+        $output = $this->instance->render('partial');
+
+        self::assertSame('This is a partial', $output);
+    }
+
+    /** @test */
+    public function catchesCircularDependencies()
+    {
+        $this->expectException(RenderException::class);
+
+        $this->instance->render('circle_one');
     }
 }

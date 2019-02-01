@@ -10,7 +10,9 @@ class EnvTest extends PunctoTestCase
     {
         parent::setUp();
 
+        unset($_ENV['PUNCTO_ENV']);
         $_ENV['DUMMY_TEST'] = 'dummy';
+
         $this->instance = new Env();
     }
 
@@ -32,5 +34,11 @@ class EnvTest extends PunctoTestCase
     public function returnsNullOnMissingVariable()
     {
         self::assertNull($this->instance->PUNCTO_TEST_MISSING_ENV_VARIABLE);
+    }
+
+    /** @test */
+    public function fallsBackToDevelopmentWhenNotSet()
+    {
+        self::assertSame('development', $this->instance->PUNCTO_ENV);
     }
 }

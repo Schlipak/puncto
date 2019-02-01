@@ -36,18 +36,18 @@ This configuration is bleeding-edge, as the framework is not stable yet. Use thi
 ```
 .
 ├── app
-│   ├── assets
-│   ├── controllers
-│   │   └── HomeController.php
-│   └── templates
-│       ├── home.html.php
-│       └── partials
-│           ├── _header.html.php
-│           └── _head.html.php
+│   ├── assets
+│   ├── controllers
+│   │   └── HomeController.php
+│   └── templates
+│       ├── home.html.php
+│       └── partials
+│           ├── _header.html.php
+│           └── _head.html.php
 ├── composer.json
 ├── composer.lock
 ├── config
-│   └── routes.json
+│   └── routes.json
 ├── index.php
 ├── rewrite.conf
 └── vendor
@@ -74,8 +74,9 @@ use Puncto\Router;
 // Create a new Puncto router
 $router = new Router();
 
-// Register the root directory, and optionally the app/ directory.
-$router->register(__DIR__, 'app');
+// Register the root directory, and optionally the application name. (defaults to "app")
+// Your classes must be namespaced with the application name, in this example, "MyApp".
+$router->register(__DIR__, 'my-app');
 
 // Sets up a static assets path.
 // This will make all the files inside app/assets/ available as /assets/... in your app.
@@ -111,7 +112,7 @@ The route configuration file should follow the following format:
 
 GET and POST are the only HTTP methods supported for now (along HEAD).
 Each method defines a series of URLs, which map to a controller action, formatted as `ControllerName#actionName`.
-A controller named `Home` in the route configuration will automatically map to the `App\HomeController` class.
+A controller named `Home` in the route configuration will automatically map to the `APP_NAMESPACE\HomeController` class.
 
 ## Controllers
 
@@ -121,8 +122,8 @@ Puncto has no support for Models (for now), so any database call must be done ma
 ```php
 <?php
 
-// The namespace must correspond to the app name given in Puncto\Router#register
-namespace App;
+// The namespace must correspond to the application name given in Puncto\Router#register
+namespace MyApp;
 
 use Puncto\Controller;
 

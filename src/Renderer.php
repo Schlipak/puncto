@@ -2,6 +2,7 @@
 
 namespace Puncto;
 
+use Puncto\Exceptions\RenderException;
 use Puncto\Interfaces\IRenderable;
 use Puncto\Logger;
 use Puncto\Traits\RenderHelper;
@@ -69,7 +70,7 @@ class Renderer extends PunctoObject implements IRenderable
             }, $stack));
             $message = "Circular dependency detected<ol start='0'>$list</ol>";
 
-            throw new \Error($message);
+            throw new RenderException($message);
         }
     }
 
@@ -78,7 +79,7 @@ class Renderer extends PunctoObject implements IRenderable
         return (
             __ROOT__ .
             DIRECTORY_SEPARATOR .
-            __APP__ .
+            'app' .
             DIRECTORY_SEPARATOR .
             'templates' .
             DIRECTORY_SEPARATOR .
@@ -119,7 +120,8 @@ class Renderer extends PunctoObject implements IRenderable
             return ob_get_clean();
         } catch (Throwable $err) {
             ob_end_clean();
-            throw $err;
+
+            throw new RenderException($err->getMessage(), $err->getCode(), $err);
         }
     }
 }

@@ -1,0 +1,8 @@
+{
+  "get": {
+    "/": "Dummy#index",
+    "/missing-controller": "Missing#index",
+    "/missing-action": "Dummy#missingAction",
+    "/controller-error": "Dummy#controllerError"
+  }
+}

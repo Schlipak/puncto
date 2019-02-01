@@ -23,7 +23,7 @@ class Env extends Bootstrapable
         $this->PUNCTO_VERSION = self::VERSION;
     }
 
-    /** @codeCoverageIgnore  */
+    /** @codeCoverageIgnore */
     public function __toString()
     {
         $body = "";

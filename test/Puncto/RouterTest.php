@@ -2,6 +2,8 @@
 
 namespace Puncto\Test;
 
+use PHPUnit\Framework\Error\Error;
+use Puncto\Exceptions\FatalException;
 use Puncto\Router;
 use Puncto\Test\HeadersTestCase;
 
@@ -82,6 +84,26 @@ class RouterTest extends HeadersTestCase
 
         $this->ensureHttpStatus(404);
         self::assertSame('ERROR 404', $output);
+    }
+
+    /** @test */
+    public function resolvesNotFoundAsJSON()
+    {
+        $_SERVER['HTTP_ACCEPT'] = 'application/json';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/nothing';
+
+        $router = new Router(true);
+        $router->get(['/test', 'TestHandler'], function () {
+            return 'Something';
+        });
+
+        ob_start();
+        $router->resolve();
+        $output = ob_get_clean();
+
+        $this->ensureHttpStatus(404);
+        self::assertSame('{"status":"error","message":"Not Found","code":404}', $output);
     }
 
     /** @test */
@@ -194,5 +216,93 @@ class RouterTest extends HeadersTestCase
 
         $this->ensureHttpStatus(405);
         self::assertNotSame('ERROR 405', $output);
+    }
+
+    /** @test */
+    public function registerRejectsMalformedAppName()
+    {
+        $router = new Router(true);
+
+        $this->assertFatalError($router, 'malformed\\appName');
+        $this->assertFatalError($router, 'app-name-with-numbers-123');
+    }
+
+    /** @test */
+    public function loadsRoutesFromJSON()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/';
+
+        $router = new Router(true);
+        $router->load(__DIR__ . '/app/routes.json');
+
+        ob_start();
+        $router->resolve();
+        $output = ob_get_clean();
+
+        $this->ensureHttpStatus(200);
+        self::assertSame('Index', $output);
+    }
+
+    /** @test */
+    public function failsOnMissingController()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/missing-controller';
+
+        $router = new Router(true);
+        $router->load(__DIR__ . '/app/routes.json');
+
+        ob_start();
+        $router->resolve();
+        $output = ob_get_clean();
+
+        $this->ensureHttpStatus(501);
+        self::assertSame('501 Not Implemented', $output);
+    }
+
+    /** @test */
+    public function failsOnMissingAction()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/missing-action';
+
+        $router = new Router(true);
+        $router->load(__DIR__ . '/app/routes.json');
+
+        ob_start();
+        $router->resolve();
+        $output = ob_get_clean();
+
+        $this->ensureHttpStatus(501);
+        self::assertSame('501 Not Implemented', $output);
+    }
+
+    /** @test */
+    public function failsOnControllerError()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/controller-error';
+
+        $router = new Router(true);
+        $router->load(__DIR__ . '/app/routes.json');
+
+        ob_start();
+        $router->resolve();
+        $output = ob_get_clean();
+
+        $this->ensureHttpStatus(500);
+        self::assertSame('500 Internal Server Error', $output);
+    }
+
+    private function assertFatalError($router, $name)
+    {
+        try {
+            $router->register(__DIR__, $name);
+        } catch (FatalException $err) {
+            return self::assertSame(FatalException::class, get_class($err));
+        }
+
+        throw new Error("Failed to assert exception FatalException", -1, __FILE__, __LINE__);
     }
 }

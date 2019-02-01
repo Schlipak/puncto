@@ -2,24 +2,40 @@
 
 namespace Puncto;
 
+use Puncto\Exceptions\FatalException;
+use Puncto\Logger;
 use \RecursiveDirectoryIterator;
 use \RecursiveIteratorIterator;
 
 abstract class Autoloader extends PunctoObject
 {
-    private static function appToNamespace($app)
+    private static function validateAppNameFormat($appName)
     {
-        $clean = StringHelper::toCleanPath($app);
+        return preg_match("/^[a-zA-Z][a-zA-Z_\-]*$/", $appName);
+    }
+
+    private static function appNameToNamespace($appName)
+    {
+        $clean = StringHelper::toCleanPath($appName);
         $clean = StringHelper::toClassCase($clean);
 
         return $clean;
     }
 
-    public static function register($base, $app = 'app')
+    public static function register($base, $appName = 'app')
     {
-        define('__ROOT__', StringHelper::toCleanPath($base, false));
-        define('__APP__', StringHelper::toCleanPath($app));
-        define('__APPNAMESPACE__', self::appToNamespace($app));
+        if (!self::validateAppNameFormat($appName)) {
+            throw new FatalException("Invalid application name format");
+        }
+
+        $rootDirectory = StringHelper::toCleanPath($base, false);
+        $appNamespace = self::appNameToNamespace($appName);
+
+        define('__ROOT__', $rootDirectory);
+        define('__APP__', $appName);
+        define('__APPNAMESPACE__', $appNamespace);
+
+        Logger::debug("Registered application '$appName' with namespace '$appNamespace'");
 
         spl_autoload_register(function ($fqcn) {
             $segments = explode('\\', $fqcn);
@@ -28,7 +44,7 @@ abstract class Autoloader extends PunctoObject
             $klass = array_values(array_slice($segments, -1))[0];
 
             if ($namespace === __APPNAMESPACE__) {
-                $appRoot = __ROOT__ . DIRECTORY_SEPARATOR . __APP__;
+                $appRoot = __ROOT__ . DIRECTORY_SEPARATOR . 'app';
                 $filename = "$klass.php";
 
                 $directory = new RecursiveDirectoryIterator($appRoot, RecursiveDirectoryIterator::SKIP_DOTS);

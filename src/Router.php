@@ -65,6 +65,16 @@ class Router extends PunctoObject
         Autoloader::register($base, $app);
     }
 
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    public function getEnv()
+    {
+        return $this->env;
+    }
+
     public function __call($name, $args)
     {
         $httpMethod = strtoupper($name);
@@ -272,7 +282,7 @@ class Router extends PunctoObject
     private function renderError($code, $message, $template, $additionalContext = [])
     {
         Logger::error("  Completed $code $message");
-        header("{$this->request->serverProtocol} $code $message");
+        header("{$this->request->serverProtocol} $code $message", true);
 
         if ($this->request->accepts('application/json')) {
             return json_encode([
@@ -379,6 +389,7 @@ class Router extends PunctoObject
         echo $this->renderNotFound();
     }
 
+    /** @codeCoverageIgnore */
     public function __destruct()
     {
         if (!$this->skipTestModeCode) {

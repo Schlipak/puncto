@@ -2,8 +2,8 @@
 
 namespace Puncto;
 
-use Puncto\Kolor;
-use \Error;
+use Puncto\Exceptions\GenericException;
+use Puncto\Logger;
 
 class StaticHandler
 {
@@ -16,7 +16,7 @@ class StaticHandler
         $this->serveBuiltin = $serveBuiltin;
     }
 
-    private static function getMimeType($path)
+    public static function getMimeType($path)
     {
         $mime = mime_content_type($path);
         $ext = pathinfo($path, PATHINFO_EXTENSION);
@@ -35,16 +35,19 @@ class StaticHandler
 
     public function render($request, $env, $params)
     {
+
         $start = round(microtime(true) * 1000);
 
         $base = explode('/*', $this->route)[0];
-        $path = __APP__ . $base . DIRECTORY_SEPARATOR . $params['*'];
+        $path = 'app' . $base . DIRECTORY_SEPARATOR . $params['*'];
 
         if ($this->serveBuiltin) {
             $base = explode('/PUNCTO_DEV', $base)[1];
             $dir = explode('/src', __DIR__)[0];
 
             $path = $dir . $base . DIRECTORY_SEPARATOR . $params['*'];
+        } else {
+            $path = __ROOT__ . "/$path";
         }
 
         if (file_exists($path)) {
@@ -57,10 +60,10 @@ class StaticHandler
                 $ifNone = $request->httpIfNoneMatch;
 
                 if ($ifMod == $gmtMtime || str_replace('"', '', stripslashes($ifNone)) == $etag) {
-                    error_log(Kolor::color("  Completed 304 Not Modified", 'magenta'));
+                    Logger::log("  Completed 304 Not Modified", 'magenta');
 
                     header("{$request->serverProtocol} 304 Not Modified");
-                    die();
+                    return;
                 }
             }
 
@@ -69,6 +72,7 @@ class StaticHandler
 
             session_cache_limiter('none');
 
+            header("{$request->serverProtocol} 200 OK");
             header("Content-Type: $mime");
             header("Content-Length: $size");
             header("ETag: \"$etag\"");
@@ -79,11 +83,11 @@ class StaticHandler
 
             $end = round(microtime(true) * 1000);
             $dt = $end - $start;
-            error_log(Kolor::color("  Processed in ${dt}ms", 'green'));
+            Logger::log("  Processed in ${dt}ms", 'green');
 
             return $output;
         }
 
-        throw new Error('Not Found');
+        throw new GenericException('Not Found');
     }
 }
