@@ -61,7 +61,7 @@ class ControllerTest extends PunctoTestCase
         $router = new Router(true);
         $router->register(__DIR__);
 
-        $output = $this->instance->render(__DIR__ . '/templates/basic', false);
+        $output = $this->instance->render(__DIR__ . '/templates/basic', false, 'html');
         self::assertSame('This is a basic template', $output);
     }
 
