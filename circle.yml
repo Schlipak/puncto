@@ -13,6 +13,7 @@ phpunit: &phpunit
           sudo apt-get update
           sudo apt-get install php7.2-dev
           sudo apt-get install php7.2-mbstring
+          sudo apt-get install php7.2-xdebug
     - run:
         name: Install RunKit
         command: |
