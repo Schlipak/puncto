@@ -18,11 +18,6 @@ class Renderer extends PunctoObject implements IRenderable
         $this->context = $context;
     }
 
-    public function __call($name, $args)
-    {
-        echo "$name called";
-    }
-
     public function setContext($context)
     {
         $this->context = $context;

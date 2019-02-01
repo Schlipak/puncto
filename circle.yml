@@ -6,32 +6,68 @@ defaults: &defaults
 phpunit: &phpunit
   steps:
     - checkout
-    - run: sudo add-apt-repository ppa:ondrej/php -y
-    - run: sudo apt-get update
-    - run: sudo apt-get install php7.2-dev
-    - run: sudo apt-get install php7.2-mbstring
-    - run: mkdir -p library
-    - run: cd library && git clone https://github.com/runkit7/runkit7.git && cd runkit7 && phpize && ./configure && make && sudo make install && echo -e "extension=runkit\nrunkit.internal_override=1" | sudo tee -a /etc/php/7.2/cli/php.ini
-    - run: php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-    - run: php -r "if (hash_file('sha384', 'composer-setup.php') ===  '48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-    - run: php composer-setup.php
-    - run: php -r "unlink('composer-setup.php');"
-    - run: php composer.phar self-update
-    - run: sudo mv composer.phar /usr/local/bin/composer
+    - run:
+        name: APT install
+        command: |
+          sudo add-apt-repository ppa:ondrej/php -y
+          sudo apt-get update
+          sudo apt-get install php7.2-dev
+          sudo apt-get install php7.2-mbstring
+    - run:
+        name: Install RunKit
+        command: |
+          mkdir -p library
+          cd library
+          git clone https://github.com/runkit7/runkit7.git
+          cd runkit7
+          phpize
+          ./configure
+          make
+          sudo make install
+          echo -e "extension=runkit\nrunkit.internal_override=1" | sudo tee -a /etc/php/7.2/cli/php.ini
+    - run:
+        name: Install Composer
+        command: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php -r "if (hash_file('sha384', 'composer-setup.php') ===  '48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+          php composer-setup.php
+          php -r "unlink('composer-setup.php');"
+          php composer.phar self-update
+          sudo mv composer.phar /usr/local/bin/composer
+    - run:
+        name: Setup Code Climate test-reporter
+        command: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
     - restore_cache:
         keys:
           - v1-dependencies-{{ checksum "composer.json" }}
           - v1-dependencies-
-    - run: composer install -n --prefer-dist
+    - run:
+        name: Install Composer dependencies
+        command: composer install -n --prefer-dist
     - save_cache:
         paths:
           - ./vendor
         key: v1-dependencies-{{ checksum "composer.json" }}
-    - run: composer code-style
-    - run: composer test
+    - run:
+        name: Code Style
+        command: composer code-style
+    - run:
+        name: Tests
+        command: composer test
+    - run:
+        name: Coverage
+        command: |
+          # sudo docker-php-ext-enable xdebug
+          ./cc-test-reporter before-build
+          composer coverage-clover
+          ./cc-test-reporter after-build --coverage-input-type clover --exit-code $?
 
 version: 2
 jobs:
   build:
+    environment:
+      CC_TEST_REPORTER_ID: 4e86e7fa03c493a6e01ea99e32df5ad80fa3f38facf44d01a638757ad08094ed
     <<: *defaults
     <<: *phpunit

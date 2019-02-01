@@ -120,4 +120,12 @@ class LoggerTest extends TestCase
         Logger::debug('Test');
         self::assertEmpty(ob_get_clean());
     }
+
+    /** @test */
+    public function logsWithCutomColors()
+    {
+        ob_start();
+        Logger::log('Test', 'red', 'normal', 'blue');
+        self::assertSame("\e[0;31;44mTest\e[0m", ob_get_clean());
+    }
 }

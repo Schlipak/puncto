@@ -1,6 +1,8 @@
 # Puncto
 
 ![](https://img.shields.io/circleci/project/github/Schlipak/puncto.svg?label=Build%20status&logo=circleci&style=flat)
+![](https://img.shields.io/codeclimate/coverage/Schlipak/puncto.svg?label=Coverage&style=flat)
+![](https://img.shields.io/codeclimate/maintainability/Schlipak/puncto.svg?label=Maintainability&style=flat)
 
 Puncto PHP web framework
 
@@ -56,7 +58,7 @@ This configuration is bleeding-edge, as the framework is not stable yet. Use thi
 * `index.php` is the entry file for your app
 * `rewrite.conf`: Or equivalent depending on the serveur you use. All URLs should be redirected to `index.php`.
   - You can use the builtin PHP development server for testing purposes: `php -S localhost:8080 index.php`
-  
+
 ## Entry file
 
 The `index.php` file is the entry file for your application. Here is an example usage:
