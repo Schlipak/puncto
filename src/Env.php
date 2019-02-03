@@ -23,9 +23,11 @@ class Env extends Bootstrapable
 
     public static function getVersion()
     {
-        $lastTag = exec("git describe --tags `git rev-list --tags --max-count=1`");
-        $commitsSinceLastTag = exec("git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count");
-        $currentCommitHash = exec("git rev-parse --short HEAD");
+        $cd = 'cd ' . __DIR__ . ' &&';
+
+        $lastTag = exec("$cd git describe --tags `git rev-list --tags --max-count=1`");
+        $commitsSinceLastTag = exec("$cd git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count");
+        $currentCommitHash = exec("$cd git rev-parse --short HEAD");
 
         // Ignore from coverage: dependant on git repo state
         // @codeCoverageIgnoreStart
