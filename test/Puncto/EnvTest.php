@@ -19,7 +19,7 @@ class EnvTest extends PunctoTestCase
     /** @test */
     public function setsVersionNumber()
     {
-        self::assertSame(Env::VERSION, $this->instance->PUNCTO_VERSION);
+        self::assertSame(Env::getVersion(), $this->instance->PUNCTO_VERSION);
     }
 
     /** @test */

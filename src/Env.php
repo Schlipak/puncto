@@ -4,8 +4,6 @@ namespace Puncto;
 
 class Env extends Bootstrapable
 {
-    const VERSION = '0.1.0';
-
     private $env;
 
     protected function bootstrapSelf()
@@ -20,7 +18,23 @@ class Env extends Bootstrapable
             $this->PUNCTO_ENV = 'development';
         }
 
-        $this->PUNCTO_VERSION = self::VERSION;
+        $this->PUNCTO_VERSION = self::getVersion();
+    }
+
+    public static function getVersion()
+    {
+        $lastTag = exec("git describe --tags `git rev-list --tags --max-count=1`");
+        $commitsSinceLastTag = exec("git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count");
+        $currentCommitHash = exec("git rev-parse --short HEAD");
+
+        // Ignore from coverage: dependant on git repo state
+        // @codeCoverageIgnoreStart
+        if ($commitsSinceLastTag > 0) {
+            return "$lastTag+$commitsSinceLastTag ($currentCommitHash)";
+        }
+
+        return $lastTag;
+        // @codeCoverageIgnoreEnd
     }
 
     /** @codeCoverageIgnore */

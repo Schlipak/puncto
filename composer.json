@@ -35,6 +35,7 @@
     "code-style": "vendor/bin/phpcs -s --standard=phpcs.xml src && vendor/bin/phpcs --standard=phpcs.xml test",
     "test": "vendor/bin/phpunit -c phpunit.xml",
     "coverage": "vendor/bin/phpunit -c phpunit.xml --coverage-html=build/coverage --coverage-text",
-    "coverage-clover": "vendor/bin/phpunit -c phpunit.xml --coverage-clover clover.xml"
+    "coverage-clover": "vendor/bin/phpunit -c phpunit.xml --coverage-clover clover.xml",
+    "all": "composer code-style && composer test && composer coverage"
   }
 }
