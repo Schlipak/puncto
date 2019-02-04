@@ -4,7 +4,7 @@ namespace Puncto;
 
 abstract class Inflector
 {
-    static $plural = array(
+    const PLURAL = [
         '/(quiz)$/i' => "$1zes",
         '/^(ox)$/i' => "$1en",
         '/([m|l])ouse$/i' => "$1ice",
@@ -24,9 +24,9 @@ abstract class Inflector
         '/(us)$/i' => "$1es",
         '/s$/i' => "s",
         '/$/' => "s",
-    );
+    ];
 
-    static $singular = array(
+    const SINGULAR = [
         '/(quiz)zes$/i' => "$1",
         '/(matr)ices$/i' => "$1ix",
         '/(vert|ind)ices$/i' => "$1ex",
@@ -55,9 +55,9 @@ abstract class Inflector
         '/(corpse)s$/i' => "$1",
         '/(us)es$/i' => "$1",
         '/s$/i' => "",
-    );
+    ];
 
-    static $irregular = array(
+    const IRREGULAR = [
         'move' => 'moves',
         'foot' => 'feet',
         'goose' => 'geese',
@@ -67,9 +67,9 @@ abstract class Inflector
         'tooth' => 'teeth',
         'person' => 'people',
         'valve' => 'valves',
-    );
+    ];
 
-    static $uncountable = array(
+    const UNCOUNTABLE = [
         'sheep',
         'fish',
         'deer',
@@ -79,31 +79,29 @@ abstract class Inflector
         'rice',
         'information',
         'equipment',
-    );
+    ];
 
     public static function pluralize($string)
     {
         // save some time in the case that singular and plural are the same
-        if (in_array(strtolower($string), self::$uncountable)) {
+        if (in_array(strtolower($string), self::UNCOUNTABLE)) {
             return $string;
         }
 
         // check for irregular singular forms
-        foreach (self::$irregular as $pattern => $result) {
+        foreach (self::IRREGULAR as $pattern => $result) {
             $pattern = '/' . $pattern . '$/i';
 
             if (preg_match($pattern, $string)) {
                 return preg_replace($pattern, $result, $string);
             }
-
         }
 
         // check for matches using regular expressions
-        foreach (self::$plural as $pattern => $result) {
+        foreach (self::PLURAL as $pattern => $result) {
             if (preg_match($pattern, $string)) {
                 return preg_replace($pattern, $result, $string);
             }
-
         }
 
         return $string;
@@ -112,38 +110,35 @@ abstract class Inflector
     public static function singularize($string)
     {
         // save some time in the case that singular and plural are the same
-        if (in_array(strtolower($string), self::$uncountable)) {
+        if (in_array(strtolower($string), self::UNCOUNTABLE)) {
             return $string;
         }
 
         // check for irregular plural forms
-        foreach (self::$irregular as $result => $pattern) {
+        foreach (self::IRREGULAR as $result => $pattern) {
             $pattern = '/' . $pattern . '$/i';
 
             if (preg_match($pattern, $string)) {
                 return preg_replace($pattern, $result, $string);
             }
-
         }
 
         // check for matches using regular expressions
-        foreach (self::$singular as $pattern => $result) {
+        foreach (self::SINGULAR as $pattern => $result) {
             if (preg_match($pattern, $string)) {
                 return preg_replace($pattern, $result, $string);
             }
-
         }
 
         return $string;
     }
 
-    public static function pluralize_if($count, $string)
+    public static function pluralizeIf($count, $string)
     {
         if ($count == 1) {
             return "1 $string";
         } else {
             return $count . " " . self::pluralize($string);
         }
-
     }
 }
