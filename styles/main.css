@@ -248,6 +248,21 @@ table > thead > tr > th {
   text-align: start;
   background-color: #57606f;
   color: rgba(255, 255, 255, 0.85);
+
+  cursor: pointer;
+  user-select: none;
+}
+
+table.sortable
+  > thead
+  > tr
+  > th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after {
+  content: '\25B4\25BE';
+  float: right;
+}
+
+table.sortable > thead > tr > th > span {
+  float: right;
 }
 
 table > thead:first-child > tr:first-child > th:first-child {
@@ -509,19 +524,19 @@ tr:hover .tag.additional {
 }
 
 .tag.head {
+  background-color: #ddbeed;
+  color: #6c388c;
+}
+
+.tag.post {
   background-color: #ccdeff;
   color: #38628c;
 }
 
-.tag.post {
-  background-color: #fff2cc;
-  color: #8c6f38;
-}
-
 .tag.put,
 .tag.patch {
-  background-color: #ffdacc;
-  color: #8c4538;
+  background-color: #fff2cc;
+  color: #8c6f38;
 }
 
 .tag.delete {

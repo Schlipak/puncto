@@ -46,7 +46,6 @@ class HeadersTestCase extends TestCase
     public static function setUpBeforeClass()
     {
         if (!extension_loaded('runkit')) {
-            phpinfo();
             return;
         }
 

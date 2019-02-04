@@ -38,4 +38,34 @@ abstract class Controller extends PunctoObject implements IRenderable
     {
         return $this->renderer->hasContext($name);
     }
+
+    public function index()
+    {
+        $klass = get_class();
+        return "Unimplemented {$klass}#index";
+    }
+
+    public function show()
+    {
+        $klass = get_class();
+        return "Unimplemented {$klass}#show";
+    }
+
+    public function create()
+    {
+        $klass = get_class();
+        return "Unimplemented {$klass}#create";
+    }
+
+    public function update()
+    {
+        $klass = get_class();
+        return "Unimplemented {$klass}#update";
+    }
+
+    public function delete()
+    {
+        $klass = get_class();
+        return "Unimplemented {$klass}#delete";
+    }
 }

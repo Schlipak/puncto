@@ -2,6 +2,8 @@
 
 namespace Puncto;
 
+use Puncto\Inflector;
+
 abstract class StringHelper extends PunctoObject
 {
     public static function toCamelCase($string)
@@ -35,5 +37,29 @@ abstract class StringHelper extends PunctoObject
         }
 
         return $result;
+    }
+
+    public static function toSnakeCase($string)
+    {
+        return implode(
+            '_',
+            array_map(function ($word) {
+                return strtolower(trim($word, " \t\n\r\0\x0B-_"));
+            },
+                array_filter(
+                    preg_split("/(?=[A-Z\s\-_][^A-Z]*)/", $string)
+                )
+            )
+        );
+    }
+
+    public static function toURL($string)
+    {
+        return str_replace('_', '-', self::toSnakeCase($string));
+    }
+
+    public static function toSingular($string)
+    {
+        return Inflector::singularize($string);
     }
 }

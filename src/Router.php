@@ -2,7 +2,7 @@
 
 namespace Puncto;
 
-use Puncto\Autoloader;
+use Puncto\Env;
 use Puncto\Logger;
 use Puncto\Renderer;
 use Puncto\Request;
@@ -13,8 +13,11 @@ use \Throwable;
 class Router extends PunctoObject
 {
     const SUPPORTED_HTTP_METHODS = [
-        "GET",
-        "POST",
+        'GET',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE',
     ];
 
     private $request;
@@ -23,12 +26,12 @@ class Router extends PunctoObject
 
     private $errorHandler;
 
-    public function __construct($skipTestModeCode = false)
+    public function __construct($request, $env, $skipTestModeCode = false)
     {
         $this->skipTestModeCode = $skipTestModeCode;
 
-        $this->request = new Request();
-        $this->env = new Env();
+        $this->request = $request;
+        $this->env = $env;
         $this->renderer = new Renderer(['request' => $this->request, 'env' => $this->env]);
 
         $this->errorHandler = function (...$args) {
@@ -60,11 +63,6 @@ class Router extends PunctoObject
         }
     }
 
-    public function register($base, $app = 'app')
-    {
-        Autoloader::register($base, $app);
-    }
-
     public function getRequest()
     {
         return $this->request;
@@ -87,6 +85,7 @@ class Router extends PunctoObject
 
         if (!in_array($httpMethod, self::SUPPORTED_HTTP_METHODS)) {
             if ($this->env->PUNCTO_ENV === 'development') {
+                $this->skipTestModeCode = true;
                 echo $this->invalidMethodHandler($route, $httpMethod);
                 return;
             }
@@ -94,6 +93,40 @@ class Router extends PunctoObject
 
         $routeData = $this->formatRouteParams($route, $method, $handler, $httpMethod);
         $this->{strtolower($name)}[$routeData['route']] = $routeData;
+    }
+
+    public function registerResource($name, $pluralize = false)
+    {
+        $controllerName = StringHelper::toClassCase($name);
+        $controllerNamePlural = $controllerName;
+
+        if (!$pluralize) {
+            $controllerName = StringHelper::toSingular($controllerName);
+        }
+
+        $controllerClass = __APPNAMESPACE__ . '\\' . $controllerName . 'Controller';
+        $baseRoute = '/' . StringHelper::toURL($controllerNamePlural);
+        $resourceRoute = "{$baseRoute}/:id";
+
+        $handlers = [
+            ['url' => $baseRoute, 'methods' => ['GET'], 'action' => 'index'],
+            ['url' => $resourceRoute, 'methods' => ['GET'], 'action' => 'show'],
+            ['url' => $baseRoute, 'methods' => ['POST'], 'action' => 'create'],
+            ['url' => $resourceRoute, 'methods' => ['PUT', 'PATCH'], 'action' => 'update'],
+            ['url' => $resourceRoute, 'methods' => ['DELETE'], 'action' => 'delete'],
+        ];
+
+        foreach ($handlers as $handlerData) {
+            $action = $handlerData['action'];
+            $handler = "{$controllerName}#{$action}";
+
+            foreach ($handlerData['methods'] as $method) {
+                $this->$method(
+                    [$handlerData['url'], $handler],
+                    $this->createControllerHandler($handler, $controllerName, $controllerClass, $action)
+                );
+            }
+        }
     }
 
     public function load($file)
@@ -107,76 +140,81 @@ class Router extends PunctoObject
 
                 $this->$httpMethod(
                     [$path, $handler],
-                    function (
-                        $request,
-                        $env,
-                        $params,
-                        $renderer
-                    ) use (
-                        $handler,
-                        $controllerName,
-                        $controllerClass,
-                        $action
-                    ) {
-                        $start = round(microtime(true) * 1000);
-
-                        try {
-                            $controller = new $controllerClass($request, $env, $params, $renderer);
-                        } catch (Throwable $err) {
-                            return $this->renderError(
-                                501,
-                                'Not Implemented',
-                                'no_controller',
-                                [
-                                    'controller' => $controllerClass,
-                                    'action' => $action,
-                                    'handler' => $handler,
-                                    'exception' => $err,
-                                ]
-                            );
-                        }
-
-                        if (!method_exists($controller, $action)) {
-                            $allRoutes = $this->getAllRoutes(false, $controllerName);
-
-                            return $this->renderError(
-                                501,
-                                'Not Implemented',
-                                'no_action',
-                                [
-                                    'controller' => $controllerClass,
-                                    'action' => $action,
-                                    'handler' => $handler,
-                                    'routes' => $allRoutes,
-                                ]
-                            );
-                        }
-
-                        try {
-                            $output = $controller->$action();
-                        } catch (Throwable $err) {
-                            return $this->renderError(
-                                500,
-                                'Internal Server Error',
-                                'internal_error',
-                                [
-                                    'controller' => $controllerClass,
-                                    'action' => $action,
-                                    'handler' => $handler,
-                                    'exception' => $err,
-                                ]
-                            );
-                        }
-
-                        $end = round(microtime(true) * 1000);
-                        $dt = $end - $start;
-                        Logger::log("  Processed in ${dt}ms", 'green');
-
-                        return $output;
-                    }
+                    $this->createControllerHandler($handler, $controllerName, $controllerClass, $action)
                 );
             }
         }
+    }
+
+    private function createControllerHandler($handler, $controllerName, $controllerClass, $action)
+    {
+        return function (
+            $request,
+            $env,
+            $params,
+            $renderer
+        ) use (
+            $handler,
+            $controllerName,
+            $controllerClass,
+            $action
+        ) {
+            $start = round(microtime(true) * 1000);
+
+            try {
+                $controller = new $controllerClass($request, $env, $params, $renderer);
+            } catch (Throwable $err) {
+                return $this->renderError(
+                    501,
+                    'Not Implemented',
+                    'no_controller',
+                    [
+                        'controller' => $controllerClass,
+                        'action' => $action,
+                        'handler' => $handler,
+                        'exception' => $err,
+                    ]
+                );
+            }
+
+            if (!method_exists($controller, $action)) {
+                $allRoutes = $this->getAllRoutes(false, $controllerName);
+
+                return $this->renderError(
+                    501,
+                    'Not Implemented',
+                    'no_action',
+                    [
+                        'controller' => $controllerClass,
+                        'action' => $action,
+                        'handler' => $handler,
+                        'routes' => $allRoutes,
+                    ]
+                );
+            }
+
+            try {
+                $output = $controller->$action();
+            } catch (Throwable $err) {
+                return $this->renderError(
+                    500,
+                    'Internal Server Error',
+                    'internal_error',
+                    [
+                        'controller' => $controllerClass,
+                        'action' => $action,
+                        'handler' => $handler,
+                        'exception' => $err,
+                    ]
+                );
+            }
+
+            $end = round(microtime(true) * 1000);
+            $dt = $end - $start;
+            Logger::log("  Processed in ${dt}ms", 'green');
+
+            return $output;
+        };
     }
 
     public function serveStatic($route, $name = 'BuiltinStaticHandler', $serveBuiltin = false)
@@ -236,8 +274,6 @@ class Router extends PunctoObject
 
     private function invalidMethodHandler($route, $method)
     {
-        Logger::warn("  Completed 405 Method Not Allowed");
-
         $this->renderer->appendContext([
             'route' => $route,
             'method' => $method,
@@ -255,11 +291,20 @@ class Router extends PunctoObject
 
     private function getAllRoutes($includeMethod = false, $filterForController = null)
     {
-        // TODO: Replace with dynamic HTTPMethods
-        $allRoutes = array_filter(array_merge(
-            (isset($this->get) ? $this->get : []),
-            (isset($this->post) ? $this->post : [])
-        ), function ($route) {
+        $allRoutesPerMethod = array_map(function ($method, $index) {
+            $method = strtolower($method);
+
+            if (!isset($this->$method)) {
+                return [];
+            }
+
+            return array_map(function ($route) use ($index) {
+                $route['sortIndex'] = $index;
+                return $route;
+            }, array_values($this->$method));
+        }, self::SUPPORTED_HTTP_METHODS, array_keys(self::SUPPORTED_HTTP_METHODS));
+
+        $allRoutes = array_filter(array_merge(...$allRoutesPerMethod), function ($route) {
             return !preg_match("/^PUNCTO_.+$/", $route['handler']);
         });
 
@@ -373,6 +418,7 @@ class Router extends PunctoObject
                 Logger::log("  Matched route handler $handler");
 
                 header('X-Powered-By: Puncto');
+                header("X-Version: {$this->env->PUNCTO_VERSION}");
                 header("{$this->request->serverProtocol} 200 OK");
 
                 $output = call_user_func_array($method, [$this->request, $this->env, $params, $this->renderer]);

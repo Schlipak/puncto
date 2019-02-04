@@ -230,6 +230,7 @@ class RouterTest extends HeadersTestCase
     /** @test */
     public function loadsRoutesFromJSON()
     {
+        $_ENV['PUNCTO_ENV'] = 'development';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/';
 

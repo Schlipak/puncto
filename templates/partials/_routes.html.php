@@ -1,5 +1,5 @@
 <div class="table-wrapper">
-  <table>
+  <table class="sortable">
     <caption><?= isset($routeTableCaption) ? $routeTableCaption : 'Available routes' ?></caption>
     <thead>
       <tr>
@@ -17,7 +17,7 @@
 
       <?php foreach ($routes as $route): ?>
         <tr>
-          <td>
+          <td sorttable_customkey="<?= $route['sortIndex'] ?>">
             <span class="tag <?= strtolower($route['httpMethod']) ?>">
               <?= strtoupper($route['httpMethod']) ?>
             </span>
@@ -32,3 +32,5 @@
     </tbody>
   </table>
 </div>
+
+<script src="/PUNCTO_DEV/scripts/sorttable.js"></script>

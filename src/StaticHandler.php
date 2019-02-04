@@ -4,8 +4,9 @@ namespace Puncto;
 
 use Puncto\Exceptions\GenericException;
 use Puncto\Logger;
+use Puncto\PunctoObject;
 
-class StaticHandler
+class StaticHandler extends PunctoObject
 {
     private $route;
     private $serveBuiltin;
