@@ -1,6 +1,6 @@
 {
   "get": {
-    "/": "Dummy#index",
+    "/": "Dummy#home",
     "/missing-controller": "Missing#index",
     "/missing-action": "Dummy#missingAction",
     "/controller-error": "Dummy#controllerError"

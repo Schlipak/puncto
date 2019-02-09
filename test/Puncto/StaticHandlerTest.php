@@ -2,10 +2,12 @@
 
 namespace Puncto\Test;
 
+use Puncto\Application;
 use Puncto\Router;
 use Puncto\StaticHandler;
 use Puncto\Test\HeadersTestCase;
 
+/** @runTestsInSeparateProcesses */
 class StaticHandlerTest extends HeadersTestCase
 {
     protected function setUp()
@@ -18,6 +20,12 @@ class StaticHandlerTest extends HeadersTestCase
         $this->base = __DIR__ . '/app/assets/';
     }
 
+    private function createApplication($name = 'puncto-unit')
+    {
+        $this->app = new Application($name, true);
+        $this->router = $this->app->getRouter();
+    }
+
     private function prepareEnv($path)
     {
         $_SERVER['REMOTE_ADDR'] = '0.0.0.0';
@@ -27,11 +35,10 @@ class StaticHandlerTest extends HeadersTestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = $path;
 
-        $router = new Router(true);
-        $router->register(__DIR__);
-        $router->serveStatic('/assets/*');
-
-        return $router;
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->serveStatic('/assets/*');
+        });
     }
 
     /** @test */
@@ -48,10 +55,10 @@ class StaticHandlerTest extends HeadersTestCase
     /** @test */
     public function servesAssets()
     {
-        $router = $this->prepareEnv('/assets/test.txt');
+        $this->prepareEnv('/assets/test.txt');
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(200);
@@ -61,10 +68,10 @@ class StaticHandlerTest extends HeadersTestCase
     /** @test */
     public function returnsNotFoundOnMissingAsset()
     {
-        $router = $this->prepareEnv('/assets/missing.txt');
+        $this->prepareEnv('/assets/missing.txt');
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(404);
@@ -76,10 +83,10 @@ class StaticHandlerTest extends HeadersTestCase
     {
         $_ENV['PUNCTO_ENV'] = 'development';
 
-        $router = $this->prepareEnv('/assets/test.txt');
+        $this->prepareEnv('/assets/test.txt');
         $handler = new StaticHandler('/PUNCTO_DEV/assets/*', true);
 
-        $handler->render($router->getRequest(), $router->getEnv(), ['*' => 'favicon.ico']);
+        $handler->render($this->router->getRequest(), $this->router->getEnv(), ['*' => 'favicon.ico']);
 
         $this->ensureContentType('image/x-icon');
         $this->ensureHttpStatus(200);
@@ -92,10 +99,10 @@ class StaticHandlerTest extends HeadersTestCase
         $gmtMtime = gmdate('D, d M Y H:i:s', $mtime) . ' GMT';
 
         $_SERVER['HTTP_IF_MODIFIED_SINCE'] = $gmtMtime;
-        $router = $this->prepareEnv('/assets/test.png');
+        $this->prepareEnv('/assets/test.png');
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(304);
@@ -105,15 +112,16 @@ class StaticHandlerTest extends HeadersTestCase
     /** @test */
     public function respectsCacheHttpIfNoneMatch()
     {
-        $mtime = filemtime(__DIR__ . '/app/assets/test.png');
+        $path = __DIR__ . '/app/assets/test.png';
+        $mtime = filemtime($path);
         $gmtMtime = gmdate('D, d M Y H:i:s', $mtime) . ' GMT';
         $etag = sprintf('%08x-%08x', crc32($path), $mtime);
 
         $_SERVER['HTTP_IF_NONE_MATCH'] = $etag;
-        $router = $this->prepareEnv('/assets/test.png');
+        $this->prepareEnv('/assets/test.png');
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(304);

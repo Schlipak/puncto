@@ -6,7 +6,7 @@ use Puncto\Controller;
 
 class DummyController extends Controller
 {
-    public function index()
+    public function home()
     {
         return 'Index';
     }

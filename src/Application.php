@@ -5,10 +5,11 @@ namespace Puncto;
 use Puncto\Autoloader;
 use Puncto\Config;
 use Puncto\Env;
+use Puncto\PunctoObject;
 use Puncto\Request;
 use Puncto\Router;
 
-class Application
+class Application extends PunctoObject
 {
     private $name;
 
@@ -16,13 +17,16 @@ class Application
     private $env;
     private $router;
 
-    public function __construct($name = 'app')
+    public function __construct($name = 'app', $skipTestModeCode = false)
     {
+        error_reporting($skipTestModeCode ? E_ALL : 0);
+        ini_set('display_errors', $skipTestModeCode ? 1 : 0);
+
         $this->name = $name;
 
-        $this->request = new Request();
         $this->env = new Env();
-        $this->router = new Router($this->request, $this->env);
+        $this->request = new Request($this->env);
+        $this->router = new Router($this->request, $this->env, $skipTestModeCode);
 
         $this->register();
     }
@@ -40,5 +44,25 @@ class Application
     {
         $config = new Config($this, $this->router);
         $callback($config);
+    }
+
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    public function getEnv()
+    {
+        return $this->env;
+    }
+
+    public function getRenderer()
+    {
+        return $this->router->getRenderer();
+    }
+
+    public function getRouter()
+    {
+        return $this->router;
     }
 }

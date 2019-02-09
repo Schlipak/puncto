@@ -83,12 +83,12 @@ abstract class Inflector
 
     public static function pluralize($string)
     {
-        // save some time in the case that singular and plural are the same
+        // Skip pluralization if singular and plural are the same
         if (in_array(strtolower($string), self::UNCOUNTABLE)) {
             return $string;
         }
 
-        // check for irregular singular forms
+        // Check for irregular singular forms
         foreach (self::IRREGULAR as $pattern => $result) {
             $pattern = '/' . $pattern . '$/i';
 
@@ -97,24 +97,26 @@ abstract class Inflector
             }
         }
 
-        // check for matches using regular expressions
+        // Check for matches using regular expressions
         foreach (self::PLURAL as $pattern => $result) {
             if (preg_match($pattern, $string)) {
                 return preg_replace($pattern, $result, $string);
             }
         }
 
+        // @codeCoverageIgnoreStart
         return $string;
+        // @codeCoverageIgnoreEnd
     }
 
     public static function singularize($string)
     {
-        // save some time in the case that singular and plural are the same
+        // Skip singularization if singular and plural are the same
         if (in_array(strtolower($string), self::UNCOUNTABLE)) {
             return $string;
         }
 
-        // check for irregular plural forms
+        // Check for irregular plural forms
         foreach (self::IRREGULAR as $result => $pattern) {
             $pattern = '/' . $pattern . '$/i';
 
@@ -123,14 +125,16 @@ abstract class Inflector
             }
         }
 
-        // check for matches using regular expressions
+        // Check for matches using regular expressions
         foreach (self::SINGULAR as $pattern => $result) {
             if (preg_match($pattern, $string)) {
                 return preg_replace($pattern, $result, $string);
             }
         }
 
+        // @codeCoverageIgnoreStart
         return $string;
+        // @codeCoverageIgnoreEnd
     }
 
     public static function pluralizeIf($count, $string)

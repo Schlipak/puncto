@@ -3,6 +3,7 @@
 namespace Puncto\Test;
 
 use PHPUnit\Framework\Error\Error;
+use Puncto\Application;
 use Puncto\Exceptions\FatalException;
 use Puncto\Router;
 use Puncto\Test\HeadersTestCase;
@@ -21,7 +22,16 @@ class RouterTest extends HeadersTestCase
         $_SERVER['HTTP_ACCEPT'] = 'text/html';
     }
 
-    /** @test */
+    private function createApplication($name = 'puncto-unit')
+    {
+        $this->app = new Application($name, true);
+        $this->router = $this->app->getRouter();
+    }
+
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function resolvesSimplePath()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -29,188 +39,233 @@ class RouterTest extends HeadersTestCase
 
         $expected = 'TEST_OUTPUT';
 
-        $router = new Router(true);
-        $router->get(['/test', 'TestHandler'], function () use ($expected) {
-            return $expected;
+        $this->createApplication();
+        $this->app->configure(function ($config) use ($expected) {
+            $config->get(['/test', 'TestHandler'], function () use ($expected) {
+                return $expected;
+            });
         });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(200);
         self::assertSame($expected, $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function resolvesHeadWithoutOuput()
     {
         $_SERVER['REQUEST_METHOD'] = 'HEAD';
         $_SERVER['REQUEST_URI'] = '/test';
 
-        $router = new Router(true);
-        $router->get(['/test', 'TestHandler'], function () {
-            return 'Something';
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->get(['/test', 'TestHandler'], function () {
+                return 'Something';
+            });
         });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(200);
         self::assertSame('', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function resolvesNotFound()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/nothing';
 
-        $router = new Router(true);
-        $router->get(['/test', 'TestHandler'], function () {
-            return 'Something';
-        });
-        $router->onError(function ($req, $env, $params, $renderer) {
-            $ctx = $renderer->getContext();
-            $code = $ctx['errorCode'];
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->get(['/test', 'TestHandler'], function () {
+                return 'Something';
+            });
 
-            return "ERROR $code";
+            $config->onError(function ($req, $env, $params, $renderer) {
+                $ctx = $renderer->getContext();
+                $code = $ctx['errorCode'];
+
+                return "ERROR $code";
+            });
         });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(404);
         self::assertSame('ERROR 404', $output);
     }
 
-    /** @test */
-    public function resolvesNotFoundAsJSON()
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
+    public function resolvesNotFoundAsJson()
     {
         $_SERVER['HTTP_ACCEPT'] = 'application/json';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/nothing';
 
-        $router = new Router(true);
-        $router->get(['/test', 'TestHandler'], function () {
-            return 'Something';
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->get(['/test', 'TestHandler'], function () {
+                return 'Something';
+            });
         });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(404);
         self::assertSame('{"status":"error","message":"Not Found","code":404}', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function errorsOnInvalidMethod()
     {
         $_SERVER['REQUEST_METHOD'] = 'PHONY';
         $_SERVER['REQUEST_URI'] = '/test';
 
-        $router = new Router(true);
-        $router->get(['/test', 'TestHandler'], function () {
-            return 'Something';
-        });
-        $router->onError(function ($req, $env, $params, $renderer) {
-            $ctx = $renderer->getContext();
-            $code = $ctx['errorCode'];
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->get(['/test', 'TestHandler'], function () {
+                return 'Something';
+            });
 
-            return "ERROR $code";
+            $config->onError(function ($req, $env, $params, $renderer) {
+                $ctx = $renderer->getContext();
+                $code = $ctx['errorCode'];
+
+                return "ERROR $code";
+            });
         });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(405);
         self::assertSame('ERROR 405', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function errorsOnInvalidRouteMethod()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/other';
 
-        $router = new Router(true);
-        $router->get(['/other', 'TestHandler'], function () {
-            return 'Valid';
-        });
-        $router->invalid(['/invalid', 'TestHandler'], function () {
-            return 'Invalid';
-        });
-        $router->onError(function ($req, $env, $params, $renderer) {
-            $ctx = $renderer->getContext();
-            $code = $ctx['errorCode'];
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->get(['/other', 'TestHandler'], function () {
+                return 'Valid';
+            });
 
-            return "ERROR $code";
+            $config->invalid(['/invalid', 'TestHandler'], function () {
+                return 'Invalid';
+            });
+
+            $config->onError(function ($req, $env, $params, $renderer) {
+                $ctx = $renderer->getContext();
+                $code = $ctx['errorCode'];
+
+                return "ERROR $code";
+            });
         });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(200);
         self::assertSame('Valid', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function returnsDefaultErrorHander()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/nothing';
 
-        $router = new Router(true);
-        $router->get(['/test', 'TestHandler'], function () {
-            return 'Something';
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->get(['/test', 'TestHandler'], function () {
+                return 'Something';
+            });
         });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(404);
         self::assertSame('404 Not Found', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function rendersDevelopmentHomepage()
     {
         $_ENV['PUNCTO_ENV'] = 'development';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/';
 
-        $router = new Router(true);
+        $this->createApplication();
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(200);
         self::assertNotEmpty($output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function showsDevelopmentErrorPageOnInvalidMethod()
     {
         $_ENV['PUNCTO_ENV'] = 'development';
 
-        $router = new Router(true);
+        $this->createApplication();
 
         ob_start();
-        $router->onError(function ($req, $env, $params, $renderer) {
-            $ctx = $renderer->getContext();
-            $code = $ctx['errorCode'];
+        $this->app->configure(function ($config) {
+            $config->onError(function ($req, $env, $params, $renderer) {
+                $ctx = $renderer->getContext();
+                $code = $ctx['errorCode'];
 
-            return "ERROR $code";
-        });
-        $router->void(['/', 'InvalidMethod'], function () {
-            return 'VOID';
+                return "ERROR $code";
+            });
+
+            $config->void(['/', 'InvalidMethod'], function () {
+                return 'VOID';
+            });
         });
         $output = ob_get_clean();
 
@@ -218,88 +273,130 @@ class RouterTest extends HeadersTestCase
         self::assertNotSame('ERROR 405', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function registerRejectsMalformedAppName()
     {
-        $router = new Router(true);
-
-        $this->assertFatalError($router, 'malformed\\appName');
-        $this->assertFatalError($router, 'app-name-with-numbers-123');
+        $this->assertApplicationInitFatalError('malformed\\appName');
+        $this->assertApplicationInitFatalError('app-name-with-numbers-123');
     }
 
-    /** @test */
-    public function loadsRoutesFromJSON()
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
+    public function loadsRoutesFromJson()
     {
         $_ENV['PUNCTO_ENV'] = 'development';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/';
 
-        $router = new Router(true);
-        $router->load(__DIR__ . '/app/routes.json');
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->loadRoutes(__DIR__ . '/app/routes.json');
+        });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(200);
         self::assertSame('Index', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function failsOnMissingController()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/missing-controller';
 
-        $router = new Router(true);
-        $router->load(__DIR__ . '/app/routes.json');
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->loadRoutes(__DIR__ . '/app/routes.json');
+        });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(501);
         self::assertSame('501 Not Implemented', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function failsOnMissingAction()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/missing-action';
 
-        $router = new Router(true);
-        $router->load(__DIR__ . '/app/routes.json');
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->loadRoutes(__DIR__ . '/app/routes.json');
+        });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(501);
         self::assertSame('501 Not Implemented', $output);
     }
 
-    /** @test */
+    /**
+     * @test
+     * @runInSeparateProcess
+     */
     public function failsOnControllerError()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/controller-error';
 
-        $router = new Router(true);
-        $router->load(__DIR__ . '/app/routes.json');
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->loadRoutes(__DIR__ . '/app/routes.json');
+        });
 
         ob_start();
-        $router->resolve();
+        $this->router->resolve();
         $output = ob_get_clean();
 
         $this->ensureHttpStatus(500);
         self::assertSame('500 Internal Server Error', $output);
     }
 
-    private function assertFatalError($router, $name)
+    /**
+     * @test
+     */
+    public function registersResource()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/users/123';
+
+        $this->createApplication();
+        $this->app->configure(function ($config) {
+            $config->resource('users');
+        });
+
+        ob_start();
+        $this->router->resolve();
+        $output = ob_get_clean();
+
+        $this->ensureHttpStatus(200);
+        self::assertSame('User #123', $output);
+    }
+
+    private function assertApplicationInitFatalError($name)
     {
         try {
-            $router->register(__DIR__, $name);
+            $this->createApplication($name);
         } catch (FatalException $err) {
             return self::assertSame(FatalException::class, get_class($err));
         }

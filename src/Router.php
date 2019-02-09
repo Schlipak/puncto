@@ -58,8 +58,6 @@ class Router extends PunctoObject
             $this->serveStatic('/PUNCTO_DEV/assets/*', 'PUNCTO_DEV__ASSETS', true);
             $this->serveStatic('/PUNCTO_DEV/styles/*', 'PUNCTO_DEV__STYLES', true);
             $this->serveStatic('/PUNCTO_DEV/scripts/*', 'PUNCTO_DEV__SCRIPTS', true);
-        } else {
-            error_reporting(0);
         }
     }
 
@@ -71,6 +69,11 @@ class Router extends PunctoObject
     public function getEnv()
     {
         return $this->env;
+    }
+
+    public function getRenderer()
+    {
+        return $this->renderer;
     }
 
     public function __call($name, $args)

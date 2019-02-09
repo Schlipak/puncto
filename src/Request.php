@@ -3,10 +3,22 @@
 namespace Puncto;
 
 use Puncto\Interfaces\IRequest;
+use Puncto\RequestBody\ParserFactory;
 use \Throwable;
 
 class Request extends Bootstrapable implements IRequest
 {
+    const TEST_KEY = 'PUNCTO_MOCK_PHP_INPUT';
+
+    private $env;
+
+    public function __construct($env)
+    {
+        parent::__construct();
+
+        $this->env = $env;
+    }
+
     protected function bootstrapSelf()
     {
         foreach ($_SERVER as $key => $value) {
@@ -18,28 +30,59 @@ class Request extends Bootstrapable implements IRequest
     {
         $result = [];
 
-        if ($this->requestMethod === "POST") {
+        if (in_array($this->requestMethod, ['POST', 'PUT', 'PATCH'])) {
             foreach ($_POST as $key => $value) {
                 $result[$key] = filter_var($_POST[$key], FILTER_SANITIZE_SPECIAL_CHARS);
             }
 
-            // @codeCoverageIgnoreStart
             try {
-                $json = json_decode(file_get_contents('php://input'));
+                $input = '';
 
-                if ($json) {
-                    foreach ($json as $key => $value) {
-                        $result[$key] = filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
+                if ($this->env->PUNCTO_ENV === 'development' && isset($this->env->{self::TEST_KEY})) {
+                    $input = $this->env->{self::TEST_KEY};
+                } else {
+                    // @codeCoverageIgnoreStart
+                    $input = file_get_contents('php://input');
+                    // @codeCoverageIgnoreEnd
+                }
+
+                if (!empty($input)) {
+                    $parser = ParserFactory::create($this);
+                    $decodedInput = $parser->parse($input);
+
+                    if ($decodedInput) {
+                        foreach ($decodedInput as $key => $value) {
+                            $result[$key] = $value;
+
+                            if (is_string($value)) {
+                                $result[$key] = filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
+                            }
+                        }
                     }
                 }
             } catch (Throwable $err) {
-                $result['status'] = 'error';
-                $result['message'] = 'Invalid input format';
+                Logger::warn("  Unprocessable input: {$err->getMessage()}");
             }
-            // @codeCoverageIgnoreEnd
         }
 
         return $result;
+    }
+
+    public function contentTypeFormat()
+    {
+        $contentType = isset($this->contentType) ? $this->contentType : $this->httpContentType;
+
+        $parts = explode(';', trim($contentType));
+        $boundary = null;
+
+        if (isset($parts[1]) && preg_match("/^boundary=.+$/", trim($parts[1]))) {
+            $boundary = '--' . explode("boundary=", trim($parts[1]))[1];
+        }
+
+        return [
+            'format' => trim($parts[0]),
+            'boundary' => $boundary,
+        ];
     }
 
     public function httpAcceptFormats()
@@ -67,7 +110,11 @@ class Request extends Bootstrapable implements IRequest
         $body = "";
 
         foreach ($this as $key => $value) {
-            $body .= "  $key => $value\n";
+            ob_start();
+            print_r($value);
+            $valueString = ob_get_clean();
+
+            $body .= "  $key => $valueString\n";
         }
 
         return "<#Request\n$body>";

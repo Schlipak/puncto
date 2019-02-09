@@ -71,8 +71,6 @@ class StaticHandler extends PunctoObject
             $size = filesize($path);
             $mime = self::getMimeType($path);
 
-            session_cache_limiter('none');
-
             header("{$request->serverProtocol} 200 OK");
             header("Content-Type: $mime");
             header("Content-Length: $size");

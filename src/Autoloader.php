@@ -31,6 +31,10 @@ abstract class Autoloader extends PunctoObject
         $rootDirectory = StringHelper::toCleanPath($base, false);
         $appNamespace = self::appNameToNamespace($appName);
 
+        if (defined('__ROOT__') && defined('__APP__') && defined('__APPNAMESPACE__')) {
+            return;
+        }
+
         define('__ROOT__', $rootDirectory);
         define('__APP__', $appName);
         define('__APPNAMESPACE__', $appNamespace);
@@ -53,7 +57,7 @@ abstract class Autoloader extends PunctoObject
                 foreach ($iterator as $file) {
                     if (strtolower($file->getFilename()) === strtolower($filename)) {
                         if ($file->isReadable()) {
-                            require $file->getPathname();
+                            require_once $file->getPathname();
                         }
                         break;
                     }

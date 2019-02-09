@@ -14,6 +14,7 @@ full_workflow: &full_workflow
           sudo apt-get install php7.2-dev
           sudo apt-get install php7.2-mbstring
           sudo apt-get install php7.2-xdebug
+          sudo apt-get install php7.2-json
     - run:
         name: Install RunKit
         command: |
