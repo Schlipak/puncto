@@ -110,6 +110,10 @@ class Request extends Bootstrapable implements IRequest
         $body = "";
 
         foreach ($this as $key => $value) {
+            if ($key === 'env') {
+                continue;
+            }
+
             ob_start();
             print_r($value);
             $valueString = ob_get_clean();

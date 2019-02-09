@@ -66,32 +66,34 @@ The `index.php` file is the entry file for your application. Here is an example 
 ```php
 <?php
 
-// Import the Composer autoloader
 require __DIR__ . '/vendor/autoload.php';
 
-use Puncto\Router;
+use Puncto\Application;
 
-// Create a new Puncto router
-$router = new Router();
+// Create a new Puncto application
+// The name will default to `app`
+// The app name will also be used as an namespace for your controllers and classes
+$app = new Application('puncto-demo');
 
-// Register the root directory, and optionally the application name. (defaults to "app")
-// Your classes must be namespaced with the application name, in this example, "MyApp".
-$router->register(__DIR__, 'my-app');
+$app->configure(function ($config) {
+    // Set up a static asset path
+    // Assets will be served from the URL /assets/ASSET_FILENAME
+    $config->serveStatic('/assets/*');
+    
+    // Loads routes from the config file (see Route configuration)
+    $config->loadRoutes('config/routes.json');
 
-// Sets up a static assets path.
-// This will make all the files inside app/assets/ available as /assets/... in your app.
-$router->serveStatic('/assets/*');
-
-// Load the route configuration file.
-// This will create routes and link them to their respective controller automatically
-$router->load('config/routes.json');
-
-// You can also define routes manually as such
-$router->get('/test', function ($request, $env, $params, $renderer) {
-  return 'Test page';
+    // Declare `users` as a resource
+    // This will assume the existance of a `APP_NAMESPACE\UserController` class
+    // and add the `index`, `show`, `create`, `update`, and `delete` routes
+    $config->resource('users');
+    
+    // You can also declare inline routes by calling a supported HTTP verb on `$config`
+    $config->get('/demo', function($request, $env, $params, $renderer) {
+      return "Demo content";
+    });
 });
 
-// The router resolves the current route automatically
 ```
 
 ## Route configuration
@@ -110,7 +112,13 @@ The route configuration file should follow the following format:
 }
 ```
 
-GET and POST are the only HTTP methods supported for now (along HEAD).
+Supported HTTP methods:
+* GET _(+ HEAD)_
+* POST
+* PUT
+* PATCH
+* DELETE
+
 Each method defines a series of URLs, which map to a controller action, formatted as `ControllerName#actionName`.
 A controller named `Home` in the route configuration will automatically map to the `APP_NAMESPACE\HomeController` class.
 
