@@ -2,7 +2,7 @@
 
 namespace Puncto\Test;
 
-use Puncto\Traits\RenderHelper;
+use Puncto\View\RenderHelper;
 
 class DummyHelper
 {

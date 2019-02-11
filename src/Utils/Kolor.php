@@ -1,6 +1,8 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Utils;
+
+use Puncto\PunctoObject;
 
 abstract class Kolor extends PunctoObject
 {

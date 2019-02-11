@@ -2,7 +2,7 @@
 
 namespace Puncto\Exceptions;
 
-use Puncto\Interfaces\IException;
+use Puncto\Exceptions\IException;
 use \Exception;
 
 class FatalException extends Exception implements IException

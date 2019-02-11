@@ -1,8 +1,8 @@
 <?php
 
-namespace Puncto\RequestBody;
+namespace Puncto\Platform\Request;
 
-use Puncto\RequestBody\IParser;
+use Puncto\Platform\Request\IParser;
 
 class FormDataParser implements IParser
 {

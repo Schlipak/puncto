@@ -1,11 +1,12 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\View;
 
 use Puncto\Exceptions\RenderException;
-use Puncto\Interfaces\IRenderable;
-use Puncto\Logger;
-use Puncto\Traits\RenderHelper;
+use Puncto\PunctoObject;
+use Puncto\Utils\Logger;
+use Puncto\View\IRenderable;
+use Puncto\View\RenderHelper;
 use \Throwable;
 
 class Renderer extends PunctoObject implements IRenderable

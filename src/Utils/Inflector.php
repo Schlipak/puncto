@@ -1,6 +1,6 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Utils;
 
 abstract class Inflector
 {

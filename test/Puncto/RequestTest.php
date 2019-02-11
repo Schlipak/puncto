@@ -3,9 +3,9 @@
 namespace Puncto\Test;
 
 use PHPUnit\Framework\TestCase;
-use Puncto\Env;
-use Puncto\Request;
-use Puncto\StringHelper;
+use Puncto\Platform\Env;
+use Puncto\Platform\Request;
+use Puncto\Utils\StringHelper;
 
 class RequestTest extends TestCase
 {

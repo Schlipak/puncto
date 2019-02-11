@@ -1,9 +1,12 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Platform;
 
-use Puncto\Interfaces\IRequest;
-use Puncto\RequestBody\ParserFactory;
+use Puncto\Platform\Bootstrapable;
+use Puncto\Platform\IRequest;
+use Puncto\Platform\Request\ParserFactory;
+use Puncto\Utils\Logger;
+use Puncto\Utils\StringHelper;
 use \Throwable;
 
 class Request extends Bootstrapable implements IRequest

@@ -1,6 +1,8 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Platform;
+
+use Puncto\Platform\Bootstrapable;
 
 class Env extends Bootstrapable
 {

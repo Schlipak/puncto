@@ -1,6 +1,6 @@
 <?php
 
-namespace Puncto\Interfaces;
+namespace Puncto\Platform;
 
 interface IRequest
 {

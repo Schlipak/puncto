@@ -1,6 +1,6 @@
 <?php
 
-namespace Puncto\RequestBody;
+namespace Puncto\Platform\Request;
 
 interface IParser
 {

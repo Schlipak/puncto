@@ -1,13 +1,12 @@
 <?php
 
-namespace Puncto\RequestBody;
+namespace Puncto\Platform\Request;
 
 use Puncto\Exceptions\ParserException;
-use Puncto\RequestBody\FormDataParser;
-use Puncto\RequestBody\FormUrlEncodedParser;
-use Puncto\RequestBody\JSONParser;
-use Puncto\RequestBody\XMLParser;
-use Puncto\Logger;
+use Puncto\Platform\Request\FormDataParser;
+use Puncto\Platform\Request\FormUrlEncodedParser;
+use Puncto\Platform\Request\JSONParser;
+use Puncto\Utils\Logger;
 
 abstract class ParserFactory
 {

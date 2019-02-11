@@ -5,8 +5,8 @@ namespace Puncto\Test;
 use PunctoUnit\DummyController;
 use Puncto\Application;
 use Puncto\Exceptions\RenderException;
-use Puncto\Renderer;
 use Puncto\Test\PunctoTestCase;
+use Puncto\View\Renderer;
 
 class ControllerTest extends PunctoTestCase
 {

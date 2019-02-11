@@ -1,6 +1,6 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Platform;
 
 class Config
 {

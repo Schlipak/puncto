@@ -2,7 +2,7 @@
 
 namespace Puncto;
 
-use Puncto\Interfaces\IRenderable;
+use Puncto\View\IRenderable;
 
 abstract class Controller extends PunctoObject implements IRenderable
 {

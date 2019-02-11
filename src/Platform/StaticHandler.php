@@ -1,9 +1,9 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Platform;
 
 use Puncto\Exceptions\GenericException;
-use Puncto\Logger;
+use Puncto\Utils\Logger;
 use Puncto\PunctoObject;
 
 class StaticHandler extends PunctoObject

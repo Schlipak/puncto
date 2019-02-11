@@ -2,7 +2,7 @@
 
 namespace Puncto\Exceptions;
 
-use Puncto\Interfaces\IException;
+use Puncto\Exceptions\IException;
 use \Exception;
 
 class GenericException extends Exception implements IException

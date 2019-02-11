@@ -3,7 +3,7 @@
 namespace Puncto\Test;
 
 use PHPUnit\Framework\TestCase;
-use Puncto\Inflector;
+use Puncto\Utils\Inflector;
 
 class InflectorTest extends TestCase
 {

@@ -5,7 +5,7 @@ namespace Puncto\Test;
 use PHPUnit\Framework\Error\Error;
 use Puncto\Application;
 use Puncto\Exceptions\FatalException;
-use Puncto\Router;
+use Puncto\Platform\Router;
 use Puncto\Test\HeadersTestCase;
 
 class RouterTest extends HeadersTestCase
@@ -41,7 +41,7 @@ class RouterTest extends HeadersTestCase
 
         $this->createApplication();
         $this->app->configure(function ($config) use ($expected) {
-            $config->get(['/test', 'TestHandler'], function () use ($expected) {
+            $config->get('/test', 'TestHandler', function () use ($expected) {
                 return $expected;
             });
         });
@@ -65,7 +65,7 @@ class RouterTest extends HeadersTestCase
 
         $this->createApplication();
         $this->app->configure(function ($config) {
-            $config->get(['/test', 'TestHandler'], function () {
+            $config->get('/test', 'TestHandler', function () {
                 return 'Something';
             });
         });
@@ -89,7 +89,7 @@ class RouterTest extends HeadersTestCase
 
         $this->createApplication();
         $this->app->configure(function ($config) {
-            $config->get(['/test', 'TestHandler'], function () {
+            $config->get('/test', 'TestHandler', function () {
                 return 'Something';
             });
 
@@ -121,7 +121,7 @@ class RouterTest extends HeadersTestCase
 
         $this->createApplication();
         $this->app->configure(function ($config) {
-            $config->get(['/test', 'TestHandler'], function () {
+            $config->get('/test', 'TestHandler', function () {
                 return 'Something';
             });
         });
@@ -138,14 +138,14 @@ class RouterTest extends HeadersTestCase
      * @test
      * @runInSeparateProcess
      */
-    public function errorsOnInvalidMethod()
+    public function errorsOnInvalidRequestMethod()
     {
         $_SERVER['REQUEST_METHOD'] = 'PHONY';
         $_SERVER['REQUEST_URI'] = '/test';
 
         $this->createApplication();
         $this->app->configure(function ($config) {
-            $config->get(['/test', 'TestHandler'], function () {
+            $config->get('/test', 'TestHandler', function () {
                 return 'Something';
             });
 
@@ -176,11 +176,11 @@ class RouterTest extends HeadersTestCase
 
         $this->createApplication();
         $this->app->configure(function ($config) {
-            $config->get(['/other', 'TestHandler'], function () {
+            $config->get('/other', 'TestHandler', function () {
                 return 'Valid';
             });
 
-            $config->invalid(['/invalid', 'TestHandler'], function () {
+            $config->invalid('/invalid', 'TestHandler', function () {
                 return 'Invalid';
             });
 
@@ -211,7 +211,7 @@ class RouterTest extends HeadersTestCase
 
         $this->createApplication();
         $this->app->configure(function ($config) {
-            $config->get(['/test', 'TestHandler'], function () {
+            $config->get('/test', 'TestHandler', function () {
                 return 'Something';
             });
         });
@@ -263,7 +263,7 @@ class RouterTest extends HeadersTestCase
                 return "ERROR $code";
             });
 
-            $config->void(['/', 'InvalidMethod'], function () {
+            $config->void('/', 'InvalidMethod', function () {
                 return 'VOID';
             });
         });

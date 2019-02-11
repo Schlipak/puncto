@@ -3,7 +3,8 @@
 namespace Puncto;
 
 use Puncto\Exceptions\FatalException;
-use Puncto\Logger;
+use Puncto\Utils\Logger;
+use Puncto\Utils\StringHelper;
 use \RecursiveDirectoryIterator;
 use \RecursiveIteratorIterator;
 
@@ -31,13 +32,17 @@ abstract class Autoloader extends PunctoObject
         $rootDirectory = StringHelper::toCleanPath($base, false);
         $appNamespace = self::appNameToNamespace($appName);
 
-        if (defined('__ROOT__') && defined('__APP__') && defined('__APPNAMESPACE__')) {
+        if (defined('__ROOT__') &&
+            defined('__APP__') &&
+            defined('__APPNAMESPACE__') &&
+            defined('__PLATFORM_ROOT__')) {
             return;
         }
 
         define('__ROOT__', $rootDirectory);
         define('__APP__', $appName);
         define('__APPNAMESPACE__', $appNamespace);
+        define('__PLATFORM_ROOT__', dirname(__DIR__));
 
         Logger::debug("Registered application '$appName' with namespace '$appNamespace'");
 

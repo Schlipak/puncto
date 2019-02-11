@@ -1,12 +1,14 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Platform;
 
-use Puncto\Env;
-use Puncto\Logger;
-use Puncto\Renderer;
-use Puncto\Request;
-use Puncto\StaticHandler;
+use Puncto\Platform\Env;
+use Puncto\Platform\Request;
+use Puncto\Platform\StaticHandler;
+use Puncto\PunctoObject;
+use Puncto\Utils\Logger;
+use Puncto\Utils\StringHelper;
+use Puncto\View\Renderer;
 use \ErrorException;
 use \Throwable;
 
@@ -47,12 +49,12 @@ class Router extends PunctoObject
                 // @codeCoverageIgnoreEnd
             }
 
-            $this->get(['/', 'PUNCTO_DEV__WELCOME'], function ($request, $env, $params, $renderer) {
+            $this->get('/', 'PUNCTO_DEV__WELCOME', function ($request, $env, $params, $renderer) {
                 $renderer->appendContext([
                     'routes' => $this->getAllRoutes(false),
                 ]);
 
-                return $renderer->render(__DIR__ . '/../templates/welcome', false);
+                return $renderer->render(__PLATFORM_ROOT__ . '/templates/welcome', false);
             });
 
             $this->serveStatic('/PUNCTO_DEV/assets/*', 'PUNCTO_DEV__ASSETS', true);
@@ -79,23 +81,40 @@ class Router extends PunctoObject
     public function __call($name, $args)
     {
         $httpMethod = strtoupper($name);
-        $handler = '(anonymous)';
-        list($route, $method) = $args;
 
-        if (is_array($route)) {
-            list($route, $handler) = $route;
+        $route = '';
+        $handler = '(anonymous)';
+        $callback = null;
+
+        $count = count($args);
+        if ($count === 2) {
+            list($route, $callback) = $args;
+        } elseif ($count === 3) {
+            list($route, $handler, $callback) = $args;
+        } else {
+            $malformedCallInfo = print_r($args, true);
+
+            Logger::error("Register {$httpMethod} route: Invalid argument count (got $count, expected 2..3)");
+            Logger::error("$name -> $malformedCallInfo");
+            return false;
         }
 
         if (!in_array($httpMethod, self::SUPPORTED_HTTP_METHODS)) {
             if ($this->env->PUNCTO_ENV === 'development') {
                 $this->skipTestModeCode = true;
                 echo $this->invalidMethodHandler($route, $httpMethod);
-                return;
+                return false;
             }
         }
 
-        $routeData = $this->formatRouteParams($route, $method, $handler, $httpMethod);
+        $routeData = $this->formatRouteParams($route, $callback, $handler, $httpMethod);
         $this->{strtolower($name)}[$routeData['route']] = $routeData;
+
+        $routeName = $routeData['route'];
+        $handlerName = $routeData['handler'];
+        Logger::debug("Registered route $httpMethod $routeName -> $handlerName");
+
+        return true;
     }
 
     public function registerResource($name, $pluralize = false)
@@ -125,7 +144,8 @@ class Router extends PunctoObject
 
             foreach ($handlerData['methods'] as $method) {
                 $this->$method(
-                    [$handlerData['url'], $handler],
+                    $handlerData['url'],
+                    $handler,
                     $this->createControllerHandler($handler, $controllerName, $controllerClass, $action)
                 );
             }
@@ -142,7 +162,8 @@ class Router extends PunctoObject
                 $controllerClass = __APPNAMESPACE__ . '\\' . $controllerName . 'Controller';
 
                 $this->$httpMethod(
-                    [$path, $handler],
+                    $path,
+                    $handler,
                     $this->createControllerHandler($handler, $controllerName, $controllerClass, $action)
                 );
             }
@@ -233,6 +254,9 @@ class Router extends PunctoObject
         }, $name, 'GET');
 
         $this->get[$routeData['route']] = $routeData;
+
+        $routeName = $routeData['route'];
+        Logger::debug("Registered static route $routeName");
     }
 
     /**
@@ -354,7 +378,7 @@ class Router extends PunctoObject
                 ]);
             }
 
-            return $this->renderer->render(__DIR__ . "/../templates/$template", false);
+            return $this->renderer->render(__PLATFORM_ROOT__ . "/templates/$template", false);
         }
 
         return call_user_func_array($this->errorHandler, [$this->request, $this->env, [], $this->renderer]);
@@ -368,6 +392,7 @@ class Router extends PunctoObject
     public function onError($callback)
     {
         $this->errorHandler = $callback;
+        Logger::debug("Registered onError callback");
     }
 
     private function extractGetParams($url)

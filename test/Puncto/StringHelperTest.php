@@ -3,7 +3,7 @@
 namespace Puncto\Test;
 
 use PHPUnit\Framework\TestCase;
-use Puncto\StringHelper;
+use Puncto\Utils\StringHelper;
 
 class StringHelperTest extends TestCase
 {

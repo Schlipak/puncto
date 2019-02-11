@@ -3,11 +3,11 @@
 namespace Puncto;
 
 use Puncto\Autoloader;
-use Puncto\Config;
-use Puncto\Env;
+use Puncto\Platform\Config;
+use Puncto\Platform\Env;
+use Puncto\Platform\Request;
+use Puncto\Platform\Router;
 use Puncto\PunctoObject;
-use Puncto\Request;
-use Puncto\Router;
 
 class Application extends PunctoObject
 {
@@ -24,11 +24,11 @@ class Application extends PunctoObject
 
         $this->name = $name;
 
+        $this->register();
+
         $this->env = new Env();
         $this->request = new Request($this->env);
         $this->router = new Router($this->request, $this->env, $skipTestModeCode);
-
-        $this->register();
     }
 
     public function register()

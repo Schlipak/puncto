@@ -1,8 +1,8 @@
 <?php
 
-namespace Puncto\Traits;
+namespace Puncto\View;
 
-use Puncto\StringHelper;
+use Puncto\Utils\StringHelper;
 
 trait RenderHelper
 {

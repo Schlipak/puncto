@@ -1,8 +1,9 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Utils;
 
-use Puncto\Inflector;
+use Puncto\PunctoObject;
+use Puncto\Utils\Inflector;
 
 abstract class StringHelper extends PunctoObject
 {

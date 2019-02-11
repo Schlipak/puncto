@@ -3,8 +3,8 @@
 namespace Puncto\Test;
 
 use Puncto\Application;
-use Puncto\Router;
-use Puncto\StaticHandler;
+use Puncto\Platform\Router;
+use Puncto\Platform\StaticHandler;
 use Puncto\Test\HeadersTestCase;
 
 /** @runTestsInSeparateProcesses */

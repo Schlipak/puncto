@@ -3,7 +3,7 @@
 namespace Puncto\Test;
 
 use PHPUnit\Framework\TestCase;
-use Puncto\Logger;
+use Puncto\Utils\Logger;
 
 class LoggerTest extends TestCase
 {
@@ -78,7 +78,7 @@ class LoggerTest extends TestCase
 
         ob_start();
         Logger::debug('Test');
-        self::assertSame("\e[7;37mTest\e[0m", ob_get_clean());
+        self::assertSame("\e[1;30m[DEBUG] Test\e[0m", ob_get_clean());
     }
 
     /** @test */
@@ -122,7 +122,7 @@ class LoggerTest extends TestCase
     }
 
     /** @test */
-    public function logsWithCutomColors()
+    public function logsWithCustomColors()
     {
         ob_start();
         Logger::log('Test', 'red', 'normal', 'blue');

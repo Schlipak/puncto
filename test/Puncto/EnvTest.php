@@ -2,7 +2,7 @@
 
 namespace Puncto\Test;
 
-use Puncto\Env;
+use Puncto\Platform\Env;
 
 class EnvTest extends PunctoTestCase
 {

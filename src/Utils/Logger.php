@@ -1,8 +1,8 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Utils;
 
-use Puncto\Kolor;
+use Puncto\Utils\Kolor;
 
 abstract class Logger
 {
@@ -44,7 +44,7 @@ abstract class Logger
             return;
         }
 
-        error_log(Kolor::color($message, 'white', 'reverse'));
+        self::printEachLine("[DEBUG] $message", 'black', 'bold');
     }
 
     public static function log($message, $color = null, ...$args)
@@ -53,11 +53,7 @@ abstract class Logger
             return;
         }
 
-        if ($color) {
-            $message = Kolor::color($message, $color, ...$args);
-        }
-
-        error_log($message);
+        self::printEachLine($message, $color, ...$args);
     }
 
     public static function error($message)
@@ -66,7 +62,7 @@ abstract class Logger
             return;
         }
 
-        error_log(Kolor::color($message, 'red', 'bold'));
+        self::printEachLine($message, 'red', 'bold');
     }
 
     public static function warn($message)
@@ -75,6 +71,22 @@ abstract class Logger
             return;
         }
 
-        error_log(Kolor::color($message, 'yellow'));
+        self::printEachLine($message, 'yellow');
+    }
+
+    private static function printEachLine($message, $color = null, ...$args)
+    {
+        $separator = "\r\n";
+        $line = strtok($message, $separator);
+
+        while ($line !== false) {
+            if (!is_null($color)) {
+                $line = Kolor::color($line, $color, ...$args);
+            }
+
+            error_log($line);
+
+            $line = strtok($separator);
+        }
     }
 }

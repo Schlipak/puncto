@@ -3,7 +3,7 @@
 namespace Puncto\Exceptions;
 
 use Puncto\Exceptions\GenericException;
-use Puncto\Interfaces\IException;
+use Puncto\Exceptions\IException;
 
 class ParserException extends GenericException implements IException
 {

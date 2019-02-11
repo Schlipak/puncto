@@ -1,9 +1,9 @@
 <?php
 
-namespace Puncto\RequestBody;
+namespace Puncto\Platform\Request;
 
 use Puncto\Exceptions\ParserException;
-use Puncto\RequestBody\IParser;
+use Puncto\Platform\Request\IParser;
 
 class JSONParser implements IParser
 {

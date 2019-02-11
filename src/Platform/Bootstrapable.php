@@ -1,6 +1,8 @@
 <?php
 
-namespace Puncto;
+namespace Puncto\Platform;
+
+use Puncto\PunctoObject;
 
 abstract class Bootstrapable extends PunctoObject
 {
